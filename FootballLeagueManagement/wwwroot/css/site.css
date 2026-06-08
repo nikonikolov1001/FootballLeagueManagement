@@ -1,0 +1,332 @@
+:root {
+  --ink: #12151f;
+  --muted: #697386;
+  --line: #dfe4ea;
+  --surface: #ffffff;
+  --soft: #f4f7fa;
+  --green: #15a36d;
+  --red: #d83a52;
+  --navy: #202a44;
+  --gold: #f0b429;
+}
+
+html {
+  font-size: 16px;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100%;
+  margin-bottom: 60px;
+  color: var(--ink);
+  background: var(--soft);
+  font-family: Inter, Segoe UI, Arial, sans-serif;
+}
+
+.navbar {
+  border-color: var(--line) !important;
+}
+
+.navbar-brand {
+  color: var(--navy) !important;
+  font-weight: 800;
+}
+
+.league-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 18px 0 22px;
+  padding: 34px;
+  color: #fff;
+  background:
+    linear-gradient(120deg, rgba(32, 42, 68, .96), rgba(21, 163, 109, .88)),
+    url("/images/premier-league-pitch.png");
+  background-position: center;
+  background-size: cover;
+  border-radius: 8px;
+}
+
+.league-hero h1 {
+  max-width: 820px;
+  margin: 0;
+  font-size: 2.6rem;
+  font-weight: 850;
+}
+
+.hero-copy {
+  max-width: 680px;
+  margin: 12px 0 0;
+  color: rgba(255, 255, 255, .86);
+  font-size: 1.08rem;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--green);
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.league-hero .eyebrow {
+  color: var(--gold);
+}
+
+.hero-badge {
+  min-width: 132px;
+  padding: 14px 18px;
+  border: 1px solid rgba(255, 255, 255, .34);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .12);
+}
+
+.hero-badge span,
+.metric span,
+.club-card span {
+  display: block;
+  color: var(--muted);
+  font-size: .86rem;
+}
+
+.hero-badge span {
+  color: rgba(255, 255, 255, .75);
+}
+
+.hero-badge strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 1.65rem;
+}
+
+.notice {
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  color: #075c3d;
+  background: #dff8ed;
+  border: 1px solid #b8ebd3;
+  border-radius: 8px;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.metric,
+.panel,
+.club-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(18, 21, 31, .05);
+}
+
+.metric {
+  padding: 18px;
+}
+
+.metric strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.55rem;
+  line-height: 1.15;
+}
+
+.management-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(320px, .85fr);
+  gap: 18px;
+}
+
+.panel {
+  padding: 22px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-title h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.league-table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+.league-table th,
+.league-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+}
+
+.league-table th {
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.league-table th:nth-child(2),
+.league-table td:nth-child(2) {
+  text-align: left;
+}
+
+.club-cell,
+.points {
+  font-weight: 800;
+}
+
+.result-form {
+  display: grid;
+  gap: 10px;
+}
+
+.result-form label {
+  color: var(--muted);
+  font-size: .86rem;
+  font-weight: 700;
+}
+
+.result-form select,
+.result-form input {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.score-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.result-form button {
+  min-height: 44px;
+  margin-top: 6px;
+  color: #fff;
+  background: var(--green);
+  border: 0;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.validation {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.recent-results {
+  margin-top: 24px;
+}
+
+.recent-results h3 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.result-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  font-size: .9rem;
+}
+
+.result-row span:last-child {
+  text-align: right;
+}
+
+.result-row strong {
+  color: var(--navy);
+}
+
+.club-section {
+  margin-top: 24px;
+}
+
+.club-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.club-card {
+  min-height: 154px;
+  padding: 18px;
+}
+
+.club-code {
+  display: inline-flex;
+  min-width: 48px;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  color: #fff;
+  background: var(--navy);
+  border-radius: 8px;
+  font-weight: 900;
+}
+
+.club-card h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.club-card p {
+  margin: 0 0 8px;
+  color: var(--green);
+  font-weight: 700;
+}
+
+@media (max-width: 980px) {
+  .metric-grid,
+  .management-grid,
+  .club-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .table-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .league-hero,
+  .metric-grid,
+  .management-grid,
+  .club-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .league-hero {
+    display: grid;
+    padding: 24px;
+  }
+
+  .league-hero h1 {
+    font-size: 2rem;
+  }
+}

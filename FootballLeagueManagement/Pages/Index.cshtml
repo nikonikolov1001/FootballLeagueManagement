@@ -1,0 +1,86 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Premier League Management";
+}
+
+<section class="league-hero">
+    <div>
+        <p class="eyebrow">English Premier League API</p>
+        <h1>Premier League Management</h1>
+        <p class="hero-copy">ASP.NET Core 8 Web API with SQL Server, EF Core, Identity, services, seeded data, and AJAX dashboard.</p>
+    </div>
+    <div class="hero-badge">
+        <span>Season</span>
+        <strong>2025/26</strong>
+    </div>
+</section>
+
+<section class="metric-grid" aria-label="League summary">
+    <div class="metric">
+        <span>Clubs</span>
+        <strong id="clubsMetric">0</strong>
+    </div>
+    <div class="metric">
+        <span>Players</span>
+        <strong id="playersMetric">0</strong>
+    </div>
+    <div class="metric">
+        <span>Matches</span>
+        <strong id="matchesMetric">0</strong>
+    </div>
+    <div class="metric">
+        <span>Leader</span>
+        <strong id="leaderMetric">Loading</strong>
+    </div>
+</section>
+
+<section class="management-grid">
+    <div class="panel table-panel">
+        <div class="section-title">
+            <div>
+                <p class="eyebrow">Loaded With Fetch</p>
+                <h2>League Standings</h2>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="league-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Club</th>
+                        <th>P</th>
+                        <th>W</th>
+                        <th>D</th>
+                        <th>L</th>
+                        <th>GF</th>
+                        <th>GA</th>
+                        <th>GD</th>
+                        <th>Pts</th>
+                    </tr>
+                </thead>
+                <tbody id="standingsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <aside class="panel">
+        <div class="section-title">
+            <div>
+                <p class="eyebrow">API Console</p>
+                <h2>Upcoming Matches</h2>
+            </div>
+        </div>
+        <div id="matchesList" class="recent-results"></div>
+    </aside>
+</section>
+
+<section class="club-section">
+    <div class="section-title">
+        <div>
+            <p class="eyebrow">CRUD Resource</p>
+            <h2>Premier League Clubs</h2>
+        </div>
+    </div>
+    <div id="clubGrid" class="club-grid"></div>
+</section>

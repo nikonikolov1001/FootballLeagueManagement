@@ -1,6 +1,0 @@
-<Solution>
-  <Project Path="FootballLeagueManagement.Core/FootballLeagueManagement.Core.csproj" />
-  <Project Path="FootballLeagueManagement.Infrastructure/FootballLeagueManagement.Infrastructure.csproj" />
-  <Project Path="FootballLeagueManagement.Tests/FootballLeagueManagement.Tests.csproj" />
-  <Project Path="FootballLeagueManagement.Web/FootballLeagueManagement.Web.csproj" />
-</Solution>
