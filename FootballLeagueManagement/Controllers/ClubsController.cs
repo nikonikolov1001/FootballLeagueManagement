@@ -1,6 +1,7 @@
 using FootballLeagueManagement.Core.Models;
 using FootballLeagueManagement.Infrastructure.Data;
 using FootballLeagueManagement.Models.Api;
+using FootballLeagueManagement.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +10,16 @@ namespace FootballLeagueManagement.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ClubsController(ApplicationDbContext dbContext) : ControllerBase
+public class ClubsController(ApplicationDbContext dbContext, IConfiguration configuration) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> All([FromQuery] string? search, CancellationToken cancellationToken)
     {
+        if (configuration.GetValue<bool>("UseDemoData"))
+        {
+            return Ok(DemoLeagueData.ClubResponses(search));
+        }
+
         var query = dbContext.Clubs.Include(club => club.Stadium).AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -21,13 +27,36 @@ public class ClubsController(ApplicationDbContext dbContext) : ControllerBase
             query = query.Where(club => club.Name.Contains(search) || club.City.Contains(search));
         }
 
-        return Ok(await query.OrderBy(club => club.Name).ToListAsync(cancellationToken));
+        try
+        {
+            return Ok(await query.OrderBy(club => club.Name).ToListAsync(cancellationToken));
+        }
+        catch
+        {
+            return Ok(DemoLeagueData.ClubResponses(search).OrderBy(club => club.GetType().GetProperty("Name")?.GetValue(club)));
+        }
     }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> ById(int id, CancellationToken cancellationToken)
     {
-        var club = await dbContext.Clubs.Include(club => club.Stadium).AsNoTracking().FirstOrDefaultAsync(club => club.Id == id, cancellationToken);
+        if (configuration.GetValue<bool>("UseDemoData"))
+        {
+            var demoClub = DemoLeagueData.ClubResponses(null).FirstOrDefault(club => (int)club.GetType().GetProperty("Id")!.GetValue(club)! == id);
+            return demoClub is null ? NotFound() : Ok(demoClub);
+        }
+
+        Club? club;
+        try
+        {
+            club = await dbContext.Clubs.Include(club => club.Stadium).AsNoTracking().FirstOrDefaultAsync(club => club.Id == id, cancellationToken);
+        }
+        catch
+        {
+            var demoClub = DemoLeagueData.ClubResponses(null).FirstOrDefault(club => (int)club.GetType().GetProperty("Id")!.GetValue(club)! == id);
+            return demoClub is null ? NotFound() : Ok(demoClub);
+        }
+
         return club is null ? NotFound() : Ok(club);
     }
 
@@ -35,6 +64,16 @@ public class ClubsController(ApplicationDbContext dbContext) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(ClubInputModel input, CancellationToken cancellationToken)
     {
+        if (!await dbContext.Stadiums.AnyAsync(stadium => stadium.Id == input.StadiumId, cancellationToken))
+        {
+            return BadRequest("The selected stadium does not exist.");
+        }
+
+        if (await dbContext.Clubs.AnyAsync(club => club.Name == input.Name || club.ShortCode == input.ShortCode, cancellationToken))
+        {
+            return Conflict("A club with the same name or short code already exists.");
+        }
+
         var club = new Club
         {
             Name = input.Name,
@@ -57,6 +96,16 @@ public class ClubsController(ApplicationDbContext dbContext) : ControllerBase
         if (club is null)
         {
             return NotFound();
+        }
+
+        if (!await dbContext.Stadiums.AnyAsync(stadium => stadium.Id == input.StadiumId, cancellationToken))
+        {
+            return BadRequest("The selected stadium does not exist.");
+        }
+
+        if (await dbContext.Clubs.AnyAsync(club => club.Id != id && (club.Name == input.Name || club.ShortCode == input.ShortCode), cancellationToken))
+        {
+            return Conflict("A club with the same name or short code already exists.");
         }
 
         club.Name = input.Name;

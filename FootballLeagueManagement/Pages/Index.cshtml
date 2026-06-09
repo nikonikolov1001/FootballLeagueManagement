@@ -30,18 +30,38 @@
         <strong id="matchesMetric">0</strong>
     </div>
     <div class="metric">
-        <span>Leader</span>
+        <span>Current Leader</span>
         <strong id="leaderMetric">Loading</strong>
     </div>
 </section>
 
-<section class="management-grid">
+<section class="dashboard-actions" aria-label="Main sections">
+    <a class="action-card" asp-page="/Standings">
+        <span>League Table</span>
+        <strong>Open Standings</strong>
+    </a>
+    <a class="action-card" asp-page="/Clubs">
+        <span>CRUD Resource</span>
+        <strong>Open Clubs</strong>
+    </a>
+    <a class="action-card" asp-page="/Matches">
+        <span>Match Console</span>
+        <strong>Open Matches</strong>
+    </a>
+    <a class="action-card" asp-page="/Api">
+        <span>Project Defense</span>
+        <strong>Open API Info</strong>
+    </a>
+</section>
+
+<section class="management-grid dashboard-preview">
     <div class="panel table-panel">
         <div class="section-title">
             <div>
                 <p class="eyebrow">Loaded With Fetch</p>
                 <h2>League Standings</h2>
             </div>
+            <a class="text-link" asp-page="/Standings">View all</a>
         </div>
         <div class="table-responsive">
             <table class="league-table">
@@ -68,19 +88,10 @@
         <div class="section-title">
             <div>
                 <p class="eyebrow">API Console</p>
-                <h2>Upcoming Matches</h2>
+                <h2>Matches</h2>
             </div>
+            <a class="text-link" asp-page="/Matches">View all</a>
         </div>
         <div id="matchesList" class="recent-results"></div>
     </aside>
-</section>
-
-<section class="club-section">
-    <div class="section-title">
-        <div>
-            <p class="eyebrow">CRUD Resource</p>
-            <h2>Premier League Clubs</h2>
-        </div>
-    </div>
-    <div id="clubGrid" class="club-grid"></div>
 </section>

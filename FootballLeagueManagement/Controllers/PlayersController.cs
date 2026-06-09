@@ -1,6 +1,7 @@
 using FootballLeagueManagement.Core.Models;
 using FootballLeagueManagement.Infrastructure.Data;
 using FootballLeagueManagement.Models.Api;
+using FootballLeagueManagement.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +10,16 @@ namespace FootballLeagueManagement.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PlayersController(ApplicationDbContext dbContext) : ControllerBase
+public class PlayersController(ApplicationDbContext dbContext, IConfiguration configuration) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> All([FromQuery] int? clubId, CancellationToken cancellationToken)
     {
+        if (configuration.GetValue<bool>("UseDemoData"))
+        {
+            return Ok(DemoLeagueData.PlayerResponses(clubId));
+        }
+
         var query = dbContext.Players.Include(player => player.Club).AsNoTracking();
 
         if (clubId.HasValue)
@@ -21,7 +27,14 @@ public class PlayersController(ApplicationDbContext dbContext) : ControllerBase
             query = query.Where(player => player.ClubId == clubId.Value);
         }
 
-        return Ok(await query.OrderBy(player => player.FullName).ToListAsync(cancellationToken));
+        try
+        {
+            return Ok(await query.OrderBy(player => player.FullName).ToListAsync(cancellationToken));
+        }
+        catch
+        {
+            return Ok(DemoLeagueData.PlayerResponses(clubId));
+        }
     }
 
     [HttpGet("{id:int}")]

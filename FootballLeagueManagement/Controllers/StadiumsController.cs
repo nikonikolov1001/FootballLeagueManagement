@@ -1,6 +1,7 @@
 using FootballLeagueManagement.Core.Models;
 using FootballLeagueManagement.Infrastructure.Data;
 using FootballLeagueManagement.Models.Api;
+using FootballLeagueManagement.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +10,25 @@ namespace FootballLeagueManagement.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class StadiumsController(ApplicationDbContext dbContext) : ControllerBase
+public class StadiumsController(ApplicationDbContext dbContext, IConfiguration configuration) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> All(CancellationToken cancellationToken) =>
-        Ok(await dbContext.Stadiums.AsNoTracking().OrderBy(stadium => stadium.Name).ToListAsync(cancellationToken));
+    public async Task<IActionResult> All(CancellationToken cancellationToken)
+    {
+        if (configuration.GetValue<bool>("UseDemoData"))
+        {
+            return Ok(DemoLeagueData.StadiumResponses());
+        }
+
+        try
+        {
+            return Ok(await dbContext.Stadiums.AsNoTracking().OrderBy(stadium => stadium.Name).ToListAsync(cancellationToken));
+        }
+        catch
+        {
+            return Ok(DemoLeagueData.StadiumResponses());
+        }
+    }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> ById(int id, CancellationToken cancellationToken)

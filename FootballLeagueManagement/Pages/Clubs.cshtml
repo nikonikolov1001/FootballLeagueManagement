@@ -1,0 +1,22 @@
+@page
+@{
+    ViewData["Title"] = "Premier League Clubs";
+}
+
+<section class="page-heading">
+    <p class="eyebrow">CRUD Resource</p>
+    <h1>Premier League Clubs</h1>
+    <p>Browse clubs, cities, short codes, and stadium links from the API.</p>
+</section>
+
+<section class="toolbar-panel compact-toolbar" aria-label="Club controls">
+    <div class="control-field">
+        <label for="clubSearch">Search clubs</label>
+        <input id="clubSearch" type="search" placeholder="Club or city" autocomplete="off" />
+    </div>
+    <div id="apiStatus" class="api-status">Loading clubs</div>
+</section>
+
+<section class="club-section">
+    <div id="clubGrid" class="club-grid"></div>
+</section>

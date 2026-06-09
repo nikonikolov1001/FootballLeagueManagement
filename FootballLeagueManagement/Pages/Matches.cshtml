@@ -1,0 +1,32 @@
+@page
+@{
+    ViewData["Title"] = "Matches";
+}
+
+<section class="page-heading">
+    <p class="eyebrow">API Console</p>
+    <h1>Matches</h1>
+    <p>Filter played and upcoming Premier League fixtures.</p>
+</section>
+
+<section class="toolbar-panel compact-toolbar" aria-label="Match controls">
+    <div class="control-field">
+        <label for="matchFilter">Match filter</label>
+        <select id="matchFilter">
+            <option value="">All matches</option>
+            <option value="true">Played</option>
+            <option value="false">Upcoming</option>
+        </select>
+    </div>
+    <div id="apiStatus" class="api-status">Loading matches</div>
+</section>
+
+<section class="panel">
+    <div class="section-title">
+        <div>
+            <p class="eyebrow">Season 2025/26</p>
+            <h2>Fixture List</h2>
+        </div>
+    </div>
+    <div id="matchesList" class="recent-results full-list"></div>
+</section>

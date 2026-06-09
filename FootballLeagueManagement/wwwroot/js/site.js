@@ -14,6 +14,25 @@ function setText(id, value) {
   }
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function setStatus(message, kind = 'loading') {
+  const element = document.getElementById('apiStatus');
+  if (!element) {
+    return;
+  }
+
+  element.textContent = message;
+  element.dataset.kind = kind;
+}
+
 function renderStandings(rows) {
   const body = document.getElementById('standingsBody');
   if (!body) {
@@ -23,7 +42,7 @@ function renderStandings(rows) {
   body.innerHTML = rows.map(row => `
     <tr>
       <td>${row.position}</td>
-      <td class="club-cell">${row.club}</td>
+      <td class="club-cell">${escapeHtml(row.club)}</td>
       <td>${row.played}</td>
       <td>${row.wins}</td>
       <td>${row.draws}</td>
@@ -41,12 +60,17 @@ function renderClubs(clubs) {
     return;
   }
 
+  if (clubs.length === 0) {
+    grid.innerHTML = '<div class="empty-state">No clubs match this search.</div>';
+    return;
+  }
+
   grid.innerHTML = clubs.map(club => `
     <article class="club-card">
-      <div class="club-code">${club.shortCode}</div>
-      <h3>${club.name}</h3>
-      <p>${club.city}</p>
-      <span>${club.stadium?.name ?? 'No stadium'}</span>
+      <div class="club-code">${escapeHtml(club.shortCode)}</div>
+      <h3>${escapeHtml(club.name)}</h3>
+      <p>${escapeHtml(club.city)}</p>
+      <span>${escapeHtml(club.stadium?.name ?? 'No stadium')}</span>
     </article>`).join('');
 }
 
@@ -56,38 +80,101 @@ function renderMatches(matches) {
     return;
   }
 
-  list.innerHTML = matches.slice(0, 6).map(match => {
+  if (matches.length === 0) {
+    list.innerHTML = '<div class="empty-state">No matches found for this filter.</div>';
+    return;
+  }
+
+  const visibleMatches = list.classList.contains('full-list') ? matches : matches.slice(0, 6);
+
+  list.innerHTML = visibleMatches.map(match => {
     const score = match.homeGoals === null || match.awayGoals === null
       ? 'vs'
       : `${match.homeGoals} - ${match.awayGoals}`;
+    const date = new Date(match.kickoffUtc).toLocaleDateString();
 
     return `
       <div class="result-row">
-        <span>${match.homeClub?.name ?? 'Home'}</span>
+        <span>${escapeHtml(match.homeClub?.name ?? 'Home')}</span>
         <strong>${score}</strong>
-        <span>${match.awayClub?.name ?? 'Away'}</span>
+        <span>${escapeHtml(match.awayClub?.name ?? 'Away')}</span>
+        <small>${date}</small>
       </div>`;
   }).join('');
 }
 
-async function loadDashboard() {
-  const [summary, standings, clubs, matches] = await Promise.all([
-    getJson('/api/league/summary'),
-    getJson('/api/league/standings'),
-    getJson('/api/clubs'),
-    getJson('/api/matches')
-  ]);
+function hasElement(id) {
+  return document.getElementById(id) !== null;
+}
+
+function buildUrl(path, params) {
+  const url = new URL(path, window.location.origin);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== '') {
+      url.searchParams.set(key, value);
+    }
+  });
+  return url.pathname + url.search;
+}
+
+async function loadSummary() {
+  const summary = await getJson('/api/league/summary');
 
   setText('clubsMetric', summary.clubs);
   setText('playersMetric', summary.players);
   setText('matchesMetric', summary.matches);
   setText('leaderMetric', summary.leader);
-  renderStandings(standings);
-  renderClubs(clubs);
-  renderMatches(matches);
 }
 
-loadDashboard().catch(error => {
+async function loadStandings() {
+  const standings = await getJson('/api/league/standings');
+  renderStandings(standings);
+}
+
+async function loadClubs() {
+  setStatus('Loading clubs');
+  const search = document.getElementById('clubSearch')?.value.trim() ?? '';
+  const clubs = await getJson(buildUrl('/api/clubs', { search }));
+  renderClubs(clubs);
+  setStatus('Clubs loaded', 'ok');
+}
+
+async function loadMatches() {
+  setStatus('Loading matches');
+  const played = document.getElementById('matchFilter')?.value ?? '';
+  const matches = await getJson(buildUrl('/api/matches', { played }));
+  renderMatches(matches);
+  setStatus('Matches loaded', 'ok');
+}
+
+async function loadDashboard() {
+  setStatus('Loading API data');
+  await Promise.all([
+    hasElement('clubsMetric') ? loadSummary() : Promise.resolve(),
+    hasElement('standingsBody') ? loadStandings() : Promise.resolve(),
+    hasElement('clubGrid') ? loadClubs() : Promise.resolve(),
+    hasElement('matchesList') ? loadMatches() : Promise.resolve()
+  ]);
+  setStatus('API data loaded', 'ok');
+}
+
+let searchTimer;
+
+document.getElementById('clubSearch')?.addEventListener('input', () => {
+  window.clearTimeout(searchTimer);
+  searchTimer = window.setTimeout(() => {
+    loadClubs().catch(showApiError);
+  }, 250);
+});
+
+document.getElementById('matchFilter')?.addEventListener('change', () => {
+  loadMatches().catch(showApiError);
+});
+
+function showApiError(error) {
   console.error(error);
   setText('leaderMetric', 'API unavailable');
-});
+  setStatus('API unavailable. Check SQL Server LocalDB and migrations.', 'error');
+}
+
+loadDashboard().catch(showApiError);

@@ -1,0 +1,42 @@
+@page
+@{
+    ViewData["Title"] = "League Standings";
+}
+
+<section class="page-heading">
+    <p class="eyebrow">Loaded With Fetch</p>
+    <h1>League Standings</h1>
+    <p>Premier League table calculated from match results.</p>
+</section>
+
+<section class="status-row">
+    <div id="apiStatus" class="api-status">Loading standings</div>
+</section>
+
+<section class="panel table-panel">
+    <div class="section-title">
+        <div>
+            <p class="eyebrow">Season 2025/26</p>
+            <h2>Current Table</h2>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="league-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Club</th>
+                    <th>P</th>
+                    <th>W</th>
+                    <th>D</th>
+                    <th>L</th>
+                    <th>GF</th>
+                    <th>GA</th>
+                    <th>GD</th>
+                    <th>Pts</th>
+                </tr>
+            </thead>
+            <tbody id="standingsBody"></tbody>
+        </table>
+    </div>
+</section>
