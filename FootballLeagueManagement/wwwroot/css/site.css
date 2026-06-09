@@ -427,15 +427,15 @@ body {
 }
 
 .zone-champions {
-  border-left: 4px solid var(--green);
+  border-left: 0;
 }
 
 .zone-europe {
-  border-left: 4px solid var(--gold);
+  border-left: 0;
 }
 
 .zone-relegation {
-  border-left: 4px solid var(--red);
+  border-left: 0;
 }
 
 .stat-bar {
