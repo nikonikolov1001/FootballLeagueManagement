@@ -1,3 +1,4 @@
+using FootballLeagueManagement.Core.Data;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -129,29 +130,10 @@ public partial class InitialCreate : Migration
             { "role-user", "User", "USER", null }
         });
 
-        migrationBuilder.InsertData("Stadiums", new[] { "Id", "Name", "City", "Capacity" }, new object[,]
-        {
-            { 1, "Anfield", "Liverpool", 61276 },
-            { 2, "Emirates Stadium", "London", 60383 },
-            { 3, "Etihad Stadium", "Manchester", 53400 },
-            { 4, "Old Trafford", "Manchester", 74310 },
-            { 5, "Stamford Bridge", "London", 41837 },
-            { 6, "Tottenham Hotspur Stadium", "London", 62850 },
-            { 7, "St James' Park", "Newcastle upon Tyne", 52305 },
-            { 8, "Villa Park", "Birmingham", 42657 }
-        });
-
-        migrationBuilder.InsertData("Clubs", new[] { "Id", "Name", "ShortCode", "City", "FoundedYear", "StadiumId" }, new object[,]
-        {
-            { 1, "Liverpool", "LIV", "Liverpool", 1892, 1 },
-            { 2, "Arsenal", "ARS", "London", 1886, 2 },
-            { 3, "Manchester City", "MCI", "Manchester", 1880, 3 },
-            { 4, "Manchester United", "MUN", "Manchester", 1878, 4 },
-            { 5, "Chelsea", "CHE", "London", 1905, 5 },
-            { 6, "Tottenham Hotspur", "TOT", "London", 1882, 6 },
-            { 7, "Newcastle United", "NEW", "Newcastle upon Tyne", 1892, 7 },
-            { 8, "Aston Villa", "AVL", "Birmingham", 1874, 8 }
-        });
+        migrationBuilder.InsertData("Stadiums", new[] { "Id", "Name", "City", "Capacity" }, BuildStadiumSeed());
+        migrationBuilder.InsertData("Clubs", new[] { "Id", "Name", "ShortCode", "City", "FoundedYear", "StadiumId" }, BuildClubSeed());
+        migrationBuilder.InsertData("Players", new[] { "Id", "FullName", "Position", "ShirtNumber", "ClubId" }, BuildPlayerSeed());
+        migrationBuilder.InsertData("Matches", new[] { "Id", "HomeClubId", "AwayClubId", "KickoffUtc", "HomeGoals", "AwayGoals" }, BuildMatchSeed());
 
         migrationBuilder.CreateIndex("IX_AspNetRoles_NormalizedName", "AspNetRoles", "NormalizedName", unique: true, filter: "[NormalizedName] IS NOT NULL");
         migrationBuilder.CreateIndex("IX_AspNetUsers_NormalizedEmail", "AspNetUsers", "NormalizedEmail");
@@ -173,5 +155,74 @@ public partial class InitialCreate : Migration
         migrationBuilder.DropTable("AspNetUsers");
         migrationBuilder.DropTable("Clubs");
         migrationBuilder.DropTable("Stadiums");
+    }
+
+    private static object[,] BuildStadiumSeed()
+    {
+        var rows = PremierLeagueSnapshot.Stadiums;
+        var values = new object[rows.Count, 4];
+
+        for (var index = 0; index < rows.Count; index++)
+        {
+            values[index, 0] = rows[index].Id;
+            values[index, 1] = rows[index].Name;
+            values[index, 2] = rows[index].City;
+            values[index, 3] = rows[index].Capacity;
+        }
+
+        return values;
+    }
+
+    private static object[,] BuildClubSeed()
+    {
+        var rows = PremierLeagueSnapshot.Clubs;
+        var values = new object[rows.Count, 6];
+
+        for (var index = 0; index < rows.Count; index++)
+        {
+            values[index, 0] = rows[index].Id;
+            values[index, 1] = rows[index].Name;
+            values[index, 2] = rows[index].ShortCode;
+            values[index, 3] = rows[index].City;
+            values[index, 4] = rows[index].FoundedYear;
+            values[index, 5] = rows[index].StadiumId;
+        }
+
+        return values;
+    }
+
+    private static object[,] BuildPlayerSeed()
+    {
+        var rows = PremierLeagueSnapshot.Players;
+        var values = new object[rows.Count, 5];
+
+        for (var index = 0; index < rows.Count; index++)
+        {
+            values[index, 0] = rows[index].Id;
+            values[index, 1] = rows[index].FullName;
+            values[index, 2] = rows[index].Position;
+            values[index, 3] = rows[index].ShirtNumber;
+            values[index, 4] = rows[index].ClubId;
+        }
+
+        return values;
+    }
+
+    private static object[,] BuildMatchSeed()
+    {
+        var rows = PremierLeagueSnapshot.Matches;
+        var values = new object[rows.Count, 6];
+
+        for (var index = 0; index < rows.Count; index++)
+        {
+            values[index, 0] = rows[index].Id;
+            values[index, 1] = rows[index].HomeClubId;
+            values[index, 2] = rows[index].AwayClubId;
+            values[index, 3] = rows[index].KickoffUtc;
+            values[index, 4] = rows[index].HomeGoals;
+            values[index, 5] = rows[index].AwayGoals;
+        }
+
+        return values;
     }
 }
