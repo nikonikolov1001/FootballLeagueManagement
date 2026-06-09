@@ -17,10 +17,18 @@ html {
 
 body {
   min-height: 100%;
-  margin-bottom: 60px;
+  margin-bottom: 0;
   color: var(--ink);
   background: var(--soft);
   font-family: Inter, Segoe UI, Arial, sans-serif;
+}
+
+.site-footer {
+  margin-top: 36px;
+  padding: 18px 0;
+  color: var(--muted);
+  background: var(--surface);
+  border-top: 1px solid var(--line);
 }
 
 .navbar {
