@@ -33,7 +33,64 @@ function setStatus(message, kind = 'loading') {
   element.dataset.kind = kind;
 }
 
-function renderStandings(rows) {
+function getClubName(value) {
+  return value?.name ?? value?.Name ?? value ?? '';
+}
+
+function getMatchResultForClub(match, clubName) {
+  const homeClub = getClubName(match.homeClub ?? match.HomeClub);
+  const awayClub = getClubName(match.awayClub ?? match.AwayClub);
+  const homeGoals = match.homeGoals ?? match.HomeGoals;
+  const awayGoals = match.awayGoals ?? match.AwayGoals;
+
+  if (homeGoals === null || homeGoals === undefined || awayGoals === null || awayGoals === undefined) {
+    return null;
+  }
+
+  if (homeClub === clubName) {
+    return homeGoals > awayGoals ? 'W' : homeGoals === awayGoals ? 'D' : 'L';
+  }
+
+  if (awayClub === clubName) {
+    return awayGoals > homeGoals ? 'W' : awayGoals === homeGoals ? 'D' : 'L';
+  }
+
+  return null;
+}
+
+function getForm(clubName, matches) {
+  return matches
+    .filter(match => getMatchResultForClub(match, clubName) !== null)
+    .sort((first, second) => new Date(second.kickoffUtc ?? second.KickoffUtc) - new Date(first.kickoffUtc ?? first.KickoffUtc))
+    .slice(0, 5)
+    .map(match => getMatchResultForClub(match, clubName));
+}
+
+function getStandingZone(position) {
+  if (position <= 4) {
+    return 'zone-champions';
+  }
+
+  if (position <= 7) {
+    return 'zone-europe';
+  }
+
+  if (position >= 18) {
+    return 'zone-relegation';
+  }
+
+  return '';
+}
+
+function renderForm(form) {
+  if (!form || form.length === 0) {
+    return '<span class="form-empty">-</span>';
+  }
+
+  return form.map(result => `<span class="form-pill form-${result.toLowerCase()}">${result}</span>`).join('');
+}
+
+function renderStandings(rows, matches = []) {
   const body = document.getElementById('standingsBody');
   if (!body) {
     return;
@@ -51,6 +108,7 @@ function renderStandings(rows) {
       <td>${row.goalsAgainst}</td>
       <td>${row.goalDifference}</td>
       <td class="points">${row.points}</td>
+      <td class="form-cell ${getStandingZone(row.position)}">${renderForm(getForm(row.club, matches))}</td>
     </tr>`).join('');
 }
 
@@ -114,20 +172,25 @@ function renderPlayers(players) {
   }
 
   if (players.length === 0) {
-    body.innerHTML = '<tr><td colspan="7" class="empty-table">No players match this search.</td></tr>';
+    body.innerHTML = '<tr><td colspan="8" class="empty-table">No players match this search.</td></tr>';
     return;
   }
 
-  body.innerHTML = players.map(player => {
+  const maxGoals = Math.max(...players.map(player => Number(getPlayerStats(player).goals ?? getPlayerStats(player).Goals ?? 0)), 1);
+
+  body.innerHTML = players.map((player, index) => {
     const stats = getPlayerStats(player);
+    const goals = Number(stats.goals ?? stats.Goals ?? 0);
+    const goalPercent = Math.round((goals / maxGoals) * 100);
 
     return `
       <tr>
+        <td>${index + 1}</td>
         <td class="club-cell">${escapeHtml(player.fullName ?? player.FullName)}</td>
         <td>${escapeHtml(player.club ?? player.Club ?? 'No club')}</td>
         <td>${escapeHtml(player.position ?? player.Position)}</td>
         <td>${stats.appearances ?? stats.Appearances ?? 0}</td>
-        <td class="points">${stats.goals ?? stats.Goals ?? 0}</td>
+        <td class="points"><span class="stat-bar" style="--stat-width:${goalPercent}%">${goals}</span></td>
         <td>${stats.assists ?? stats.Assists ?? 0}</td>
         <td>${stats.rating ?? stats.Rating ?? 0}</td>
       </tr>`;
@@ -158,8 +221,11 @@ async function loadSummary() {
 }
 
 async function loadStandings() {
-  const standings = await getJson('/api/league/standings');
-  renderStandings(standings);
+  const [standings, matches] = await Promise.all([
+    getJson('/api/league/standings'),
+    getJson('/api/matches')
+  ]);
+  renderStandings(standings, matches);
 }
 
 async function loadClubs() {

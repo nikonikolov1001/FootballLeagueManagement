@@ -148,6 +148,33 @@ body {
   margin-bottom: 18px;
 }
 
+.snapshot-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.snapshot-strip div {
+  padding: 14px 16px;
+  color: #fff;
+  background: var(--navy);
+  border-radius: 8px;
+}
+
+.snapshot-strip span {
+  display: block;
+  color: rgba(255, 255, 255, .68);
+  font-size: .82rem;
+  font-weight: 750;
+}
+
+.snapshot-strip strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 1.05rem;
+}
+
 .dashboard-actions {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -365,6 +392,76 @@ body {
   font-weight: 800;
 }
 
+.form-cell {
+  min-width: 156px;
+}
+
+.form-pill {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  color: #fff;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 900;
+}
+
+.form-w {
+  background: var(--green);
+}
+
+.form-d {
+  background: var(--gold);
+  color: var(--navy);
+}
+
+.form-l {
+  background: var(--red);
+}
+
+.form-empty {
+  color: var(--muted);
+}
+
+.zone-champions {
+  border-left: 4px solid var(--green);
+}
+
+.zone-europe {
+  border-left: 4px solid var(--gold);
+}
+
+.zone-relegation {
+  border-left: 4px solid var(--red);
+}
+
+.stat-bar {
+  position: relative;
+  display: inline-flex;
+  min-width: 54px;
+  justify-content: flex-end;
+  padding: 4px 8px;
+  overflow: hidden;
+  color: var(--navy);
+  border-radius: 999px;
+  background: #eef3f7;
+}
+
+.stat-bar::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--stat-width);
+  content: "";
+  background: rgba(21, 163, 109, .22);
+}
+
+.stat-bar {
+  isolation: isolate;
+}
+
 .result-form {
   display: grid;
   gap: 10px;
@@ -527,6 +624,7 @@ body {
   .metric-grid,
   .management-grid,
   .dashboard-actions,
+  .snapshot-strip,
   .club-grid,
   .endpoint-grid {
     grid-template-columns: 1fr 1fr;
@@ -550,6 +648,7 @@ body {
   .metric-grid,
   .management-grid,
   .dashboard-actions,
+  .snapshot-strip,
   .club-grid,
   .endpoint-grid,
   .toolbar-panel {
