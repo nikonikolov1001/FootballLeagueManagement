@@ -1,13 +1,16 @@
 :root {
-  --ink: #12151f;
-  --muted: #697386;
-  --line: #dfe4ea;
+  --ink: #25002f;
+  --muted: #7a5a84;
+  --line: #eadfec;
   --surface: #ffffff;
-  --soft: #f4f7fa;
-  --green: #15a36d;
-  --red: #d83a52;
-  --navy: #202a44;
-  --gold: #f0b429;
+  --soft: #fbf9fc;
+  --green: #00c389;
+  --red: #ff3860;
+  --navy: #37003c;
+  --gold: #ffb900;
+  --cyan: #05f0ff;
+  --blue: #5674ff;
+  --purple: #6c4cff;
 }
 
 html {
@@ -23,6 +26,12 @@ body {
   font-family: Inter, Segoe UI, Arial, sans-serif;
 }
 
+.container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 22px;
+}
+
 .site-footer {
   margin-top: 36px;
   padding: 18px 0;
@@ -32,10 +41,9 @@ body {
 }
 
 .navbar {
-  border-color: var(--line) !important;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
-  box-shadow: 0 8px 20px rgba(18, 21, 31, .04);
+  box-shadow: none;
 }
 
 .navbar .container,
@@ -46,7 +54,7 @@ body {
 }
 
 .navbar .container {
-  min-height: 64px;
+  min-height: 76px;
 }
 
 .navbar-nav {
@@ -57,18 +65,19 @@ body {
 
 .navbar-brand {
   color: var(--navy) !important;
-  font-weight: 800;
+  font-size: 1.25rem;
+  font-weight: 900;
   text-decoration: none;
 }
 
 .nav-link {
-  color: var(--muted) !important;
-  font-weight: 750;
+  color: var(--navy) !important;
+  font-weight: 850;
   text-decoration: none;
 }
 
 .nav-link:hover {
-  color: var(--green) !important;
+  color: #e90052 !important;
 }
 
 .league-hero {
@@ -80,11 +89,11 @@ body {
   padding: 34px;
   color: #fff;
   background:
-    linear-gradient(120deg, rgba(32, 42, 68, .96), rgba(21, 163, 109, .88)),
+    linear-gradient(120deg, rgba(108, 76, 255, .98), rgba(5, 240, 255, .92)),
     url("/images/premier-league-pitch.png");
   background-position: center;
   background-size: cover;
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .league-hero h1 {
@@ -111,7 +120,7 @@ body {
 }
 
 .league-hero .eyebrow {
-  color: var(--gold);
+  color: #fff;
 }
 
 .hero-badge {
@@ -119,7 +128,7 @@ body {
   padding: 14px 18px;
   border: 1px solid rgba(255, 255, 255, .34);
   border-radius: 8px;
-  background: rgba(255, 255, 255, .12);
+  background: rgba(55, 0, 60, .22);
 }
 
 .hero-badge span,
@@ -166,7 +175,7 @@ body {
 .snapshot-strip div {
   padding: 14px 16px;
   color: #fff;
-  background: var(--navy);
+  background: linear-gradient(135deg, var(--navy), #5a1764);
   border-radius: 8px;
 }
 
@@ -202,7 +211,7 @@ body {
 }
 
 .action-card:hover {
-  border-color: var(--green);
+  border-color: #e90052;
 }
 
 .action-card span {
@@ -273,9 +282,9 @@ body {
 }
 
 .api-status[data-kind="ok"] {
-  color: #075c3d;
-  background: #dff8ed;
-  border-color: #b8ebd3;
+  color: var(--navy);
+  background: #e5fbff;
+  border-color: #b8f8ff;
 }
 
 .api-status[data-kind="error"] {
@@ -290,7 +299,7 @@ body {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: 0 10px 24px rgba(18, 21, 31, .05);
+  box-shadow: 0 14px 30px rgba(55, 0, 60, .06);
 }
 
 .metric {
@@ -315,12 +324,15 @@ body {
 }
 
 .page-heading {
-  margin: 24px 0 18px;
+  margin: 0 -22px 24px;
+  padding: 38px 22px;
+  color: #fff;
+  background: linear-gradient(120deg, var(--purple), var(--cyan));
 }
 
 .page-heading h1 {
   margin: 0;
-  color: var(--navy);
+  color: #fff;
   font-size: 2.1rem;
   font-weight: 850;
 }
@@ -328,7 +340,11 @@ body {
 .page-heading p:last-child {
   max-width: 720px;
   margin: 8px 0 0;
-  color: var(--muted);
+  color: rgba(255, 255, 255, .82);
+}
+
+.page-heading .eyebrow {
+  color: #fff;
 }
 
 .status-row {
@@ -338,13 +354,13 @@ body {
 }
 
 .text-link {
-  color: var(--green);
+  color: #e90052;
   font-weight: 800;
   text-decoration: none;
 }
 
 .text-link:hover {
-  color: #075c3d;
+  color: var(--navy);
 }
 
 .section-title {
@@ -612,7 +628,7 @@ body {
 
 .club-rank {
   color: var(--navy);
-  background: #eef3f7;
+  background: #f4e8f6;
   border-radius: 999px;
   padding: 5px 9px;
   font-size: .78rem;
@@ -651,8 +667,8 @@ body {
 }
 
 .endpoint-grid a:hover {
-  border-color: var(--green);
-  color: #075c3d;
+  border-color: #e90052;
+  color: #e90052;
 }
 
 .empty-state {
