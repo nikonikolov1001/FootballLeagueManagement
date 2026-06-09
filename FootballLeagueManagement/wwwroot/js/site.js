@@ -103,6 +103,37 @@ function renderMatches(matches) {
   }).join('');
 }
 
+function getPlayerStats(player) {
+  return player.stats ?? player.Stats ?? {};
+}
+
+function renderPlayers(players) {
+  const body = document.getElementById('playersBody');
+  if (!body) {
+    return;
+  }
+
+  if (players.length === 0) {
+    body.innerHTML = '<tr><td colspan="7" class="empty-table">No players match this search.</td></tr>';
+    return;
+  }
+
+  body.innerHTML = players.map(player => {
+    const stats = getPlayerStats(player);
+
+    return `
+      <tr>
+        <td class="club-cell">${escapeHtml(player.fullName ?? player.FullName)}</td>
+        <td>${escapeHtml(player.club ?? player.Club ?? 'No club')}</td>
+        <td>${escapeHtml(player.position ?? player.Position)}</td>
+        <td>${stats.appearances ?? stats.Appearances ?? 0}</td>
+        <td class="points">${stats.goals ?? stats.Goals ?? 0}</td>
+        <td>${stats.assists ?? stats.Assists ?? 0}</td>
+        <td>${stats.rating ?? stats.Rating ?? 0}</td>
+      </tr>`;
+  }).join('');
+}
+
 function hasElement(id) {
   return document.getElementById(id) !== null;
 }
@@ -147,13 +178,64 @@ async function loadMatches() {
   setStatus('Matches loaded', 'ok');
 }
 
+async function loadPlayers() {
+  setStatus('Loading players');
+  const players = await getJson('/api/players');
+  const search = document.getElementById('playerSearch')?.value.trim().toLowerCase() ?? '';
+  const sort = document.getElementById('playerSort')?.value ?? 'goals';
+
+  const filteredPlayers = players.filter(player => {
+    const fullName = String(player.fullName ?? player.FullName ?? '').toLowerCase();
+    const club = String(player.club ?? player.Club ?? '').toLowerCase();
+    const position = String(player.position ?? player.Position ?? '').toLowerCase();
+    return fullName.includes(search) || club.includes(search) || position.includes(search);
+  });
+
+  filteredPlayers.sort((first, second) => {
+    const firstStats = getPlayerStats(first);
+    const secondStats = getPlayerStats(second);
+
+    if (sort === 'name') {
+      return String(first.fullName ?? first.FullName).localeCompare(String(second.fullName ?? second.FullName));
+    }
+
+    const statKey = sort === 'appearances'
+      ? 'appearances'
+      : sort;
+    const firstValue = Number(firstStats[statKey] ?? firstStats[capitalize(statKey)] ?? 0);
+    const secondValue = Number(secondStats[statKey] ?? secondStats[capitalize(statKey)] ?? 0);
+    return secondValue - firstValue;
+  });
+
+  renderPlayers(filteredPlayers);
+  updatePlayerMetrics(filteredPlayers);
+  setStatus('Players loaded', 'ok');
+}
+
+function capitalize(value) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function updatePlayerMetrics(players) {
+  setText('playerCountMetric', players.length);
+
+  const byGoals = [...players].sort((first, second) => Number(getPlayerStats(second).goals ?? getPlayerStats(second).Goals ?? 0) - Number(getPlayerStats(first).goals ?? getPlayerStats(first).Goals ?? 0))[0];
+  const byAssists = [...players].sort((first, second) => Number(getPlayerStats(second).assists ?? getPlayerStats(second).Assists ?? 0) - Number(getPlayerStats(first).assists ?? getPlayerStats(first).Assists ?? 0))[0];
+  const byRating = [...players].sort((first, second) => Number(getPlayerStats(second).rating ?? getPlayerStats(second).Rating ?? 0) - Number(getPlayerStats(first).rating ?? getPlayerStats(first).Rating ?? 0))[0];
+
+  setText('topScorerMetric', byGoals ? `${byGoals.fullName ?? byGoals.FullName} (${getPlayerStats(byGoals).goals ?? getPlayerStats(byGoals).Goals})` : 'No data');
+  setText('topAssistsMetric', byAssists ? `${byAssists.fullName ?? byAssists.FullName} (${getPlayerStats(byAssists).assists ?? getPlayerStats(byAssists).Assists})` : 'No data');
+  setText('topRatingMetric', byRating ? `${byRating.fullName ?? byRating.FullName} (${getPlayerStats(byRating).rating ?? getPlayerStats(byRating).Rating})` : 'No data');
+}
+
 async function loadDashboard() {
   setStatus('Loading API data');
   await Promise.all([
     hasElement('clubsMetric') ? loadSummary() : Promise.resolve(),
     hasElement('standingsBody') ? loadStandings() : Promise.resolve(),
     hasElement('clubGrid') ? loadClubs() : Promise.resolve(),
-    hasElement('matchesList') ? loadMatches() : Promise.resolve()
+    hasElement('matchesList') ? loadMatches() : Promise.resolve(),
+    hasElement('playersBody') ? loadPlayers() : Promise.resolve()
   ]);
   setStatus('API data loaded', 'ok');
 }
@@ -169,6 +251,17 @@ document.getElementById('clubSearch')?.addEventListener('input', () => {
 
 document.getElementById('matchFilter')?.addEventListener('change', () => {
   loadMatches().catch(showApiError);
+});
+
+document.getElementById('playerSearch')?.addEventListener('input', () => {
+  window.clearTimeout(searchTimer);
+  searchTimer = window.setTimeout(() => {
+    loadPlayers().catch(showApiError);
+  }, 250);
+});
+
+document.getElementById('playerSort')?.addEventListener('change', () => {
+  loadPlayers().catch(showApiError);
 });
 
 function showApiError(error) {

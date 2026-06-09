@@ -139,7 +139,8 @@ public static class DemoLeagueData
             player.Position,
             player.ShirtNumber,
             player.ClubId,
-            Club = Clubs.First(club => club.Id == player.ClubId).Name
+            Club = Clubs.First(club => club.Id == player.ClubId).Name,
+            Stats = BuildPlayerStats(player.FullName)
         });
     }
 
@@ -204,5 +205,18 @@ public static class DemoLeagueData
 
         public StandingDto ToDto() =>
             new(0, club, _played, _wins, _draws, _losses, _goalsFor, _goalsAgainst, _goalsFor - _goalsAgainst, _wins * 3 + _draws);
+    }
+
+    public static object BuildPlayerStats(string fullName)
+    {
+        var player = PremierLeagueSnapshot.Players.FirstOrDefault(player => player.FullName == fullName);
+
+        return new
+        {
+            Appearances = player?.Appearances ?? 0,
+            Goals = player?.Goals ?? 0,
+            Assists = player?.Assists ?? 0,
+            Rating = player?.Rating ?? 0
+        };
     }
 }

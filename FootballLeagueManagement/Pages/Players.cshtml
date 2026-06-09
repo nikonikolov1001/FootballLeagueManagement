@@ -1,0 +1,72 @@
+@page
+@{
+    ViewData["Title"] = "Players";
+}
+
+<section class="page-heading">
+    <p class="eyebrow">Player Statistics</p>
+    <h1>Premier League Players</h1>
+    <p>Review appearances, goals, assists, and season ratings for key players.</p>
+</section>
+
+<section class="toolbar-panel player-toolbar" aria-label="Player controls">
+    <div class="control-field">
+        <label for="playerSearch">Search players</label>
+        <input id="playerSearch" type="search" placeholder="Player, club, or position" autocomplete="off" />
+    </div>
+    <div class="control-field">
+        <label for="playerSort">Sort by</label>
+        <select id="playerSort">
+            <option value="goals">Goals</option>
+            <option value="assists">Assists</option>
+            <option value="rating">Rating</option>
+            <option value="appearances">Appearances</option>
+            <option value="name">Name</option>
+        </select>
+    </div>
+    <div id="apiStatus" class="api-status">Loading players</div>
+</section>
+
+<section class="metric-grid" aria-label="Player summary">
+    <div class="metric">
+        <span>Total Players</span>
+        <strong id="playerCountMetric">0</strong>
+    </div>
+    <div class="metric">
+        <span>Top Scorer</span>
+        <strong id="topScorerMetric">Loading</strong>
+    </div>
+    <div class="metric">
+        <span>Most Assists</span>
+        <strong id="topAssistsMetric">Loading</strong>
+    </div>
+    <div class="metric">
+        <span>Best Rating</span>
+        <strong id="topRatingMetric">Loading</strong>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="section-title">
+        <div>
+            <p class="eyebrow">Two Weeks Before Final Day</p>
+            <h2>Player Statistics Table</h2>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="league-table player-table">
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Club</th>
+                    <th>Pos</th>
+                    <th>Apps</th>
+                    <th>Goals</th>
+                    <th>Assists</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+            <tbody id="playersBody"></tbody>
+        </table>
+    </div>
+</section>

@@ -150,7 +150,7 @@ body {
 
 .dashboard-actions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 18px;
 }
@@ -200,6 +200,10 @@ body {
 
 .compact-toolbar {
   grid-template-columns: minmax(220px, 1fr) auto;
+}
+
+.player-toolbar {
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 240px) auto;
 }
 
 .control-field label {
@@ -344,6 +348,15 @@ body {
 
 .league-table th:nth-child(2),
 .league-table td:nth-child(2) {
+  text-align: left;
+}
+
+.player-table th:first-child,
+.player-table td:first-child,
+.player-table th:nth-child(2),
+.player-table td:nth-child(2),
+.player-table th:nth-child(3),
+.player-table td:nth-child(3) {
   text-align: left;
 }
 
@@ -502,6 +515,12 @@ body {
 .empty-state {
   color: var(--muted);
   grid-column: 1 / -1;
+}
+
+.empty-table {
+  color: var(--muted);
+  font-weight: 800;
+  text-align: left !important;
 }
 
 @media (max-width: 980px) {

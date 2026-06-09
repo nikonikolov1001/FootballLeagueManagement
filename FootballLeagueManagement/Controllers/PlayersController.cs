@@ -29,7 +29,18 @@ public class PlayersController(ApplicationDbContext dbContext, IConfiguration co
 
         try
         {
-            return Ok(await query.OrderBy(player => player.FullName).ToListAsync(cancellationToken));
+            var players = await query.OrderBy(player => player.FullName).ToListAsync(cancellationToken);
+
+            return Ok(players.Select(player => new
+            {
+                player.Id,
+                player.FullName,
+                player.Position,
+                player.ShirtNumber,
+                player.ClubId,
+                Club = player.Club?.Name,
+                Stats = DemoLeagueData.BuildPlayerStats(player.FullName)
+            }));
         }
         catch
         {
