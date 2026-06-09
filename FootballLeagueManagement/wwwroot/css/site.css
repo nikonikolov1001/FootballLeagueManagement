@@ -542,6 +542,27 @@ body {
   font-weight: 700;
 }
 
+.match-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  margin-right: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 900;
+}
+
+.match-played {
+  color: #075c3d;
+  background: #dff8ed;
+}
+
+.match-upcoming {
+  color: var(--navy);
+  background: #eef3f7;
+}
+
 .club-section {
   margin-top: 24px;
 }

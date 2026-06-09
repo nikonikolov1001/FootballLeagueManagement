@@ -146,17 +146,25 @@ function renderMatches(matches) {
   const visibleMatches = list.classList.contains('full-list') ? matches : matches.slice(0, 6);
 
   list.innerHTML = visibleMatches.map(match => {
-    const score = match.homeGoals === null || match.awayGoals === null
+    const isUpcoming = match.homeGoals === null || match.awayGoals === null;
+    const score = isUpcoming
       ? 'vs'
       : `${match.homeGoals} - ${match.awayGoals}`;
-    const date = new Date(match.kickoffUtc).toLocaleDateString();
+    const date = new Date(match.kickoffUtc).toLocaleDateString(undefined, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
 
     return `
       <div class="result-row">
         <span>${escapeHtml(match.homeClub?.name ?? 'Home')}</span>
         <strong>${score}</strong>
         <span>${escapeHtml(match.awayClub?.name ?? 'Away')}</span>
-        <small>${date}</small>
+        <small>
+          <span class="match-badge ${isUpcoming ? 'match-upcoming' : 'match-played'}">${isUpcoming ? 'Upcoming' : 'Played'}</span>
+          ${date}
+        </small>
       </div>`;
   }).join('');
 }
