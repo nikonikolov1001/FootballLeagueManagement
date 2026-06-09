@@ -112,7 +112,7 @@ function renderStandings(rows, matches = []) {
     </tr>`).join('');
 }
 
-function renderClubs(clubs) {
+function renderClubs(clubs, standings = []) {
   const grid = document.getElementById('clubGrid');
   if (!grid) {
     return;
@@ -123,13 +123,26 @@ function renderClubs(clubs) {
     return;
   }
 
+  const standingsByClub = new Map(standings.map(row => [row.club, row]));
+
   grid.innerHTML = clubs.map(club => `
     <article class="club-card">
-      <div class="club-code">${escapeHtml(club.shortCode)}</div>
+      <div class="club-card-top">
+        <div class="club-code">${escapeHtml(club.shortCode)}</div>
+        ${renderClubRank(standingsByClub.get(club.name))}
+      </div>
       <h3>${escapeHtml(club.name)}</h3>
       <p>${escapeHtml(club.city)}</p>
       <span>${escapeHtml(club.stadium?.name ?? 'No stadium')}</span>
     </article>`).join('');
+}
+
+function renderClubRank(standing) {
+  if (!standing) {
+    return '<span class="club-rank">No table data</span>';
+  }
+
+  return `<span class="club-rank">#${standing.position} · ${standing.points} pts</span>`;
 }
 
 function renderMatches(matches) {
@@ -239,8 +252,11 @@ async function loadStandings() {
 async function loadClubs() {
   setStatus('Loading clubs');
   const search = document.getElementById('clubSearch')?.value.trim() ?? '';
-  const clubs = await getJson(buildUrl('/api/clubs', { search }));
-  renderClubs(clubs);
+  const [clubs, standings] = await Promise.all([
+    getJson(buildUrl('/api/clubs', { search })),
+    getJson('/api/league/standings')
+  ]);
+  renderClubs(clubs, standings);
   setStatus('Clubs loaded', 'ok');
 }
 
