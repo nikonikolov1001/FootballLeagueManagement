@@ -1,0 +1,64 @@
+@page
+@{
+    ViewData["Title"] = "Stadiums";
+}
+
+<section class="page-heading">
+    <p class="eyebrow">CRUD Resource</p>
+    <h1>Premier League Stadiums</h1>
+    <p>Create, edit, and delete stadium records through the API.</p>
+</section>
+
+<section class="status-row">
+    <div id="apiStatus" class="api-status">Loading stadiums</div>
+</section>
+
+<section class="panel">
+    <div class="section-title">
+        <div>
+            <p class="eyebrow">Venues</p>
+            <h2>Stadium List</h2>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="league-table stadium-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Stadium</th>
+                    <th>City</th>
+                    <th>Capacity</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="stadiumsBody"></tbody>
+        </table>
+    </div>
+</section>
+
+<section class="panel admin-panel">
+    <div class="section-title">
+        <div>
+            <p class="eyebrow">Administrator</p>
+            <h2 id="stadiumFormTitle">Add Stadium</h2>
+        </div>
+        <button id="stadiumResetButton" type="button" class="secondary-button">New</button>
+    </div>
+    <form id="stadiumForm" class="admin-form">
+        <input id="stadiumId" type="hidden" />
+        <div class="control-field">
+            <label for="stadiumName">Name</label>
+            <input id="stadiumName" name="name" type="text" maxlength="100" required />
+        </div>
+        <div class="control-field">
+            <label for="stadiumCity">City</label>
+            <input id="stadiumCity" name="city" type="text" maxlength="80" required />
+        </div>
+        <div class="control-field">
+            <label for="stadiumCapacity">Capacity</label>
+            <input id="stadiumCapacity" name="capacity" type="number" min="1000" max="100000" required />
+        </div>
+        <button type="submit" class="primary-button">Save Stadium</button>
+        <div id="stadiumAdminStatus" class="api-status">Login as admin to save changes</div>
+    </form>
+</section>

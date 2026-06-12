@@ -1,4 +1,4 @@
-namespace FootballLeagueManagement.Core.Data;
+ namespace FootballLeagueManagement.Core.Data;
 
 public static class PremierLeagueSnapshot
 {

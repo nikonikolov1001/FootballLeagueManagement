@@ -30,3 +30,55 @@
     </div>
     <div id="matchesList" class="recent-results full-list"></div>
 </section>
+
+<section class="panel admin-panel">
+    <div class="section-title">
+        <div>
+            <p class="eyebrow">Administrator</p>
+            <h2 id="matchFormTitle">Add Match</h2>
+        </div>
+        <button id="matchResetButton" type="button" class="secondary-button">New</button>
+    </div>
+    <form id="matchForm" class="admin-form">
+        <input id="matchId" type="hidden" />
+        <div class="control-field">
+            <label for="matchHomeClubId">Home club</label>
+            <select id="matchHomeClubId" name="homeClubId" required></select>
+        </div>
+        <div class="control-field">
+            <label for="matchAwayClubId">Away club</label>
+            <select id="matchAwayClubId" name="awayClubId" required></select>
+        </div>
+        <div class="control-field">
+            <label for="matchKickoffUtc">Kickoff</label>
+            <input id="matchKickoffUtc" name="kickoffUtc" type="datetime-local" required />
+        </div>
+        <button type="submit" class="primary-button">Save Match</button>
+        <div id="matchAdminStatus" class="api-status">Login as admin to save changes</div>
+    </form>
+</section>
+
+<section class="panel admin-panel">
+    <div class="section-title">
+        <div>
+            <p class="eyebrow">Result</p>
+            <h2>Record Match Result</h2>
+        </div>
+    </div>
+    <form id="resultForm" class="admin-form">
+        <div class="control-field">
+            <label for="resultMatchId">Match</label>
+            <select id="resultMatchId" name="matchId" required></select>
+        </div>
+        <div class="control-field">
+            <label for="resultHomeGoals">Home goals</label>
+            <input id="resultHomeGoals" name="homeGoals" type="number" min="0" max="30" required />
+        </div>
+        <div class="control-field">
+            <label for="resultAwayGoals">Away goals</label>
+            <input id="resultAwayGoals" name="awayGoals" type="number" min="0" max="30" required />
+        </div>
+        <button type="submit" class="primary-button">Save Result</button>
+        <div id="resultAdminStatus" class="api-status">Login as admin to save changes</div>
+    </form>
+</section>

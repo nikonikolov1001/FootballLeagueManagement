@@ -20,3 +20,38 @@
 <section class="club-section">
     <div id="clubGrid" class="club-grid"></div>
 </section>
+
+<section class="panel admin-panel">
+    <div class="section-title">
+        <div>
+            <p class="eyebrow">Administrator</p>
+            <h2 id="clubFormTitle">Add Club</h2>
+        </div>
+        <button id="clubResetButton" type="button" class="secondary-button">New</button>
+    </div>
+    <form id="clubForm" class="admin-form">
+        <input id="clubId" type="hidden" />
+        <div class="control-field">
+            <label for="clubName">Name</label>
+            <input id="clubName" name="name" type="text" maxlength="80" required />
+        </div>
+        <div class="control-field">
+            <label for="clubShortCode">Short code</label>
+            <input id="clubShortCode" name="shortCode" type="text" maxlength="8" required />
+        </div>
+        <div class="control-field">
+            <label for="clubCity">City</label>
+            <input id="clubCity" name="city" type="text" maxlength="80" required />
+        </div>
+        <div class="control-field">
+            <label for="clubFoundedYear">Founded year</label>
+            <input id="clubFoundedYear" name="foundedYear" type="number" min="1800" max="2100" required />
+        </div>
+        <div class="control-field">
+            <label for="clubStadiumId">Stadium</label>
+            <select id="clubStadiumId" name="stadiumId" required></select>
+        </div>
+        <button type="submit" class="primary-button">Save Club</button>
+        <div id="clubAdminStatus" class="api-status">Login as admin to save changes</div>
+    </form>
+</section>

@@ -1,0 +1,34 @@
+@page
+@{
+    ViewData["Title"] = "Login";
+}
+
+<section class="page-heading">
+    <p class="eyebrow">Account Access</p>
+    <h1>Login</h1>
+    <p>Sign in with an existing account to access protected actions.</p>
+</section>
+
+<section class="auth-shell">
+    <form id="loginForm" class="panel auth-form">
+        <div class="section-title">
+            <div>
+                <p class="eyebrow">Existing User</p>
+                <h2>Sign in</h2>
+            </div>
+        </div>
+
+        <div class="control-field">
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" name="email" type="email" autocomplete="email" required />
+        </div>
+
+        <div class="control-field">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" name="password" type="password" autocomplete="current-password" required />
+        </div>
+
+        <button type="submit" class="primary-button">Login</button>
+        <div id="authStatus" class="api-status">Ready</div>
+    </form>
+</section>

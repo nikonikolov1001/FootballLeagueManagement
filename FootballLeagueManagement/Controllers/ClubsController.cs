@@ -29,7 +29,29 @@ public class ClubsController(ApplicationDbContext dbContext, IConfiguration conf
 
         try
         {
-            return Ok(await query.OrderBy(club => club.Name).ToListAsync(cancellationToken));
+            var clubs = await query
+                .OrderBy(club => club.Name)
+                .Select(club => new
+                {
+                    club.Id,
+                    club.Name,
+                    club.ShortCode,
+                    club.City,
+                    club.FoundedYear,
+                    club.StadiumId,
+                    Stadium = club.Stadium == null
+                        ? null
+                        : new
+                        {
+                            club.Stadium.Id,
+                            club.Stadium.Name,
+                            club.Stadium.City,
+                            club.Stadium.Capacity
+                        }
+                })
+                .ToListAsync(cancellationToken);
+
+            return Ok(clubs);
         }
         catch
         {
@@ -57,7 +79,26 @@ public class ClubsController(ApplicationDbContext dbContext, IConfiguration conf
             return demoClub is null ? NotFound() : Ok(demoClub);
         }
 
-        return club is null ? NotFound() : Ok(club);
+        return club is null
+            ? NotFound()
+            : Ok(new
+            {
+                club.Id,
+                club.Name,
+                club.ShortCode,
+                club.City,
+                club.FoundedYear,
+                club.StadiumId,
+                Stadium = club.Stadium == null
+                    ? null
+                    : new
+                    {
+                        club.Stadium.Id,
+                        club.Stadium.Name,
+                        club.Stadium.City,
+                        club.Stadium.Capacity
+                    }
+            });
     }
 
     [Authorize(Roles = "Administrator")]
@@ -127,8 +168,15 @@ public class ClubsController(ApplicationDbContext dbContext, IConfiguration conf
             return NotFound();
         }
 
-        dbContext.Clubs.Remove(club);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return NoContent();
+        try
+        {
+            dbContext.Clubs.Remove(club);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return NoContent();
+        }
+        catch (DbUpdateException)
+        {
+            return Conflict("This club cannot be deleted because it has related players or matches.");
+        }
     }
 }

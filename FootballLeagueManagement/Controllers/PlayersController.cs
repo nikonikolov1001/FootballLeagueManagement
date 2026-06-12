@@ -59,6 +59,11 @@ public class PlayersController(ApplicationDbContext dbContext, IConfiguration co
     [HttpPost]
     public async Task<IActionResult> Create(PlayerInputModel input, CancellationToken cancellationToken)
     {
+        if (!await dbContext.Clubs.AnyAsync(club => club.Id == input.ClubId, cancellationToken))
+        {
+            return BadRequest("The selected club does not exist.");
+        }
+
         var player = new Player
         {
             FullName = input.FullName,
@@ -80,6 +85,11 @@ public class PlayersController(ApplicationDbContext dbContext, IConfiguration co
         if (player is null)
         {
             return NotFound();
+        }
+
+        if (!await dbContext.Clubs.AnyAsync(club => club.Id == input.ClubId, cancellationToken))
+        {
+            return BadRequest("The selected club does not exist.");
         }
 
         player.FullName = input.FullName;

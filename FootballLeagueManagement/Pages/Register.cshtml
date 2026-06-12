@@ -1,0 +1,44 @@
+@page
+@{
+    ViewData["Title"] = "Register";
+}
+
+<section class="page-heading">
+    <p class="eyebrow">New Account</p>
+    <h1>Register</h1>
+    <p>Create a user account with a custom profile and favorite club.</p>
+</section>
+
+<section class="auth-shell">
+    <form id="registerForm" class="panel auth-form">
+        <div class="section-title">
+            <div>
+                <p class="eyebrow">Create User</p>
+                <h2>Account details</h2>
+            </div>
+        </div>
+
+        <div class="control-field">
+            <label for="registerFullName">Full name</label>
+            <input id="registerFullName" name="fullName" type="text" autocomplete="name" required maxlength="100" />
+        </div>
+
+        <div class="control-field">
+            <label for="registerEmail">Email</label>
+            <input id="registerEmail" name="email" type="email" autocomplete="email" required />
+        </div>
+
+        <div class="control-field">
+            <label for="registerPassword">Password</label>
+            <input id="registerPassword" name="password" type="password" autocomplete="new-password" required minlength="8" />
+        </div>
+
+        <div class="control-field">
+            <label for="registerFavoriteClub">Favorite club</label>
+            <input id="registerFavoriteClub" name="favoriteClub" type="text" maxlength="80" />
+        </div>
+
+        <button type="submit" class="primary-button">Register</button>
+        <div id="authStatus" class="api-status">Ready</div>
+    </form>
+</section>

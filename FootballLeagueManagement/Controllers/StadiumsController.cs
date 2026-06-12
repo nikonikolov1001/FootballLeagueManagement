@@ -74,8 +74,15 @@ public class StadiumsController(ApplicationDbContext dbContext, IConfiguration c
             return NotFound();
         }
 
-        dbContext.Stadiums.Remove(stadium);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return NoContent();
+        try
+        {
+            dbContext.Stadiums.Remove(stadium);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return NoContent();
+        }
+        catch (DbUpdateException)
+        {
+            return Conflict("This stadium cannot be deleted because it is assigned to a club.");
+        }
     }
 }

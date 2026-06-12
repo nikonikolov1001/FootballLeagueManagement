@@ -65,9 +65,41 @@
                     <th>Goals</th>
                     <th>Assists</th>
                     <th>Rating</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="playersBody"></tbody>
         </table>
     </div>
+</section>
+
+<section class="panel admin-panel">
+    <div class="section-title">
+        <div>
+            <p class="eyebrow">Administrator</p>
+            <h2 id="playerFormTitle">Add Player</h2>
+        </div>
+        <button id="playerResetButton" type="button" class="secondary-button">New</button>
+    </div>
+    <form id="playerForm" class="admin-form">
+        <input id="playerId" type="hidden" />
+        <div class="control-field">
+            <label for="playerFullName">Full name</label>
+            <input id="playerFullName" name="fullName" type="text" maxlength="100" required />
+        </div>
+        <div class="control-field">
+            <label for="playerPosition">Position</label>
+            <input id="playerPosition" name="position" type="text" maxlength="40" required />
+        </div>
+        <div class="control-field">
+            <label for="playerShirtNumber">Shirt number</label>
+            <input id="playerShirtNumber" name="shirtNumber" type="number" min="1" max="99" required />
+        </div>
+        <div class="control-field">
+            <label for="playerClubId">Club</label>
+            <select id="playerClubId" name="clubId" required></select>
+        </div>
+        <button type="submit" class="primary-button">Save Player</button>
+        <div id="playerAdminStatus" class="api-status">Login as admin to save changes</div>
+    </form>
 </section>

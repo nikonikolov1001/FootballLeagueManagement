@@ -23,6 +23,19 @@ function escapeHtml(value) {
     .replaceAll("'", '&#039;');
 }
 
+function field(item, camelName) {
+  if (!item) {
+    return undefined;
+  }
+
+  const pascalName = capitalize(camelName);
+  return item[camelName] ?? item[pascalName];
+}
+
+function itemId(item) {
+  return field(item, 'id');
+}
+
 function setStatus(message, kind = 'loading') {
   const element = document.getElementById('apiStatus');
   if (!element) {
@@ -31,6 +44,98 @@ function setStatus(message, kind = 'loading') {
 
   element.textContent = message;
   element.dataset.kind = kind;
+}
+
+function setAuthStatus(message, kind = 'loading') {
+  const element = document.getElementById('authStatus');
+  if (!element) {
+    return;
+  }
+
+  element.textContent = message;
+  element.dataset.kind = kind;
+}
+
+async function postJson(url, data) {
+  return sendJson(url, 'POST', data);
+}
+
+async function sendJson(url, method, data) {
+  const options = {
+    method,
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
+
+  if (data !== undefined) {
+    options.body = JSON.stringify(data);
+  }
+
+  const response = await fetch(url, options);
+
+  if (!response.ok) {
+    let message = `Request failed with status ${response.status}.`;
+    const text = await response.text();
+
+    try {
+      const error = text ? JSON.parse(text) : null;
+      message = Array.isArray(error) ? error.join(' ') : error?.message ?? JSON.stringify(error);
+    } catch {
+      message = text || message;
+    }
+
+    throw new Error(message);
+  }
+
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
+}
+
+function setAdminStatus(id, message, kind = 'loading') {
+  const element = document.getElementById(id);
+  if (!element) {
+    return;
+  }
+
+  element.textContent = message;
+  element.dataset.kind = kind;
+}
+
+function getPayload(form, numberFields = []) {
+  const payload = Object.fromEntries(new FormData(form).entries());
+  numberFields.forEach(fieldName => {
+    payload[fieldName] = Number(payload[fieldName]);
+  });
+  return payload;
+}
+
+function fillSelect(id, items, getLabel, selectedValue) {
+  const select = document.getElementById(id);
+  if (!select) {
+    return;
+  }
+
+  select.innerHTML = items.map(item => {
+    const value = itemId(item);
+    const selected = String(value) === String(selectedValue) ? ' selected' : '';
+    return `<option value="${value}"${selected}>${escapeHtml(getLabel(item))}</option>`;
+  }).join('');
+}
+
+function toLocalInputValue(value) {
+  if (!value) {
+    return '';
+  }
+
+  const date = new Date(value);
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return date.toISOString().slice(0, 16);
+}
+
+function toUtcIsoFromLocalInput(value) {
+  return new Date(value).toISOString();
 }
 
 function getClubName(value) {
@@ -123,17 +228,24 @@ function renderClubs(clubs, standings = []) {
     return;
   }
 
-  const standingsByClub = new Map(standings.map(row => [row.club, row]));
+  window.leagueState = window.leagueState || {};
+  window.leagueState.clubs = clubs;
+
+  const standingsByClub = new Map(standings.map(row => [field(row, 'club'), row]));
 
   grid.innerHTML = clubs.map(club => `
     <article class="club-card">
       <div class="club-card-top">
-        <div class="club-code">${escapeHtml(club.shortCode)}</div>
-        ${renderClubRank(standingsByClub.get(club.name))}
+        <div class="club-code">${escapeHtml(field(club, 'shortCode'))}</div>
+        ${renderClubRank(standingsByClub.get(field(club, 'name')))}
       </div>
-      <h3>${escapeHtml(club.name)}</h3>
-      <p>${escapeHtml(club.city)}</p>
-      <span>${escapeHtml(club.stadium?.name ?? 'No stadium')}</span>
+      <h3>${escapeHtml(field(club, 'name'))}</h3>
+      <p>${escapeHtml(field(club, 'city'))}</p>
+      <span>${escapeHtml(field(field(club, 'stadium'), 'name') ?? 'No stadium')}</span>
+      <div class="admin-actions">
+        <button type="button" data-edit-club="${itemId(club)}">Edit</button>
+        <button type="button" class="danger-button" data-delete-club="${itemId(club)}">Delete</button>
+      </div>
     </article>`).join('');
 }
 
@@ -151,6 +263,9 @@ function renderMatches(matches) {
     return;
   }
 
+  window.leagueState = window.leagueState || {};
+  window.leagueState.matches = matches;
+
   if (matches.length === 0) {
     list.innerHTML = '<div class="empty-state">No matches found for this filter.</div>';
     return;
@@ -159,11 +274,15 @@ function renderMatches(matches) {
   const visibleMatches = list.classList.contains('full-list') ? matches : matches.slice(0, 6);
 
   list.innerHTML = visibleMatches.map(match => {
-    const isUpcoming = match.homeGoals === null || match.awayGoals === null;
+    const homeGoals = field(match, 'homeGoals');
+    const awayGoals = field(match, 'awayGoals');
+    const homeClub = field(match, 'homeClub');
+    const awayClub = field(match, 'awayClub');
+    const isUpcoming = homeGoals === null || homeGoals === undefined || awayGoals === null || awayGoals === undefined;
     const score = isUpcoming
       ? 'vs'
-      : `${match.homeGoals} - ${match.awayGoals}`;
-    const date = new Date(match.kickoffUtc).toLocaleDateString(undefined, {
+      : `${homeGoals} - ${awayGoals}`;
+    const date = new Date(field(match, 'kickoffUtc')).toLocaleDateString(undefined, {
       day: '2-digit',
       month: 'short',
       year: 'numeric'
@@ -171,15 +290,22 @@ function renderMatches(matches) {
 
     return `
       <div class="result-row">
-        <span>${escapeHtml(match.homeClub?.name ?? 'Home')}</span>
+        <span>${escapeHtml(field(homeClub, 'name') ?? 'Home')}</span>
         <strong>${score}</strong>
-        <span>${escapeHtml(match.awayClub?.name ?? 'Away')}</span>
+        <span>${escapeHtml(field(awayClub, 'name') ?? 'Away')}</span>
         <small>
           <span class="match-badge ${isUpcoming ? 'match-upcoming' : 'match-played'}">${isUpcoming ? 'Upcoming' : 'Played'}</span>
           ${date}
         </small>
+        <div class="admin-actions result-actions">
+          <button type="button" data-edit-match="${itemId(match)}">Edit</button>
+          <button type="button" data-result-match="${itemId(match)}">Result</button>
+          <button type="button" class="danger-button" data-delete-match="${itemId(match)}">Delete</button>
+        </div>
       </div>`;
   }).join('');
+
+  fillResultMatchSelect(matches);
 }
 
 function getPlayerStats(player) {
@@ -192,8 +318,11 @@ function renderPlayers(players) {
     return;
   }
 
+  window.leagueState = window.leagueState || {};
+  window.leagueState.players = players;
+
   if (players.length === 0) {
-    body.innerHTML = '<tr><td colspan="8" class="empty-table">No players match this search.</td></tr>';
+    body.innerHTML = '<tr><td colspan="9" class="empty-table">No players match this search.</td></tr>';
     return;
   }
 
@@ -214,8 +343,39 @@ function renderPlayers(players) {
         <td class="points"><span class="stat-bar" style="--stat-width:${goalPercent}%">${goals}</span></td>
         <td>${stats.assists ?? stats.Assists ?? 0}</td>
         <td>${stats.rating ?? stats.Rating ?? 0}</td>
+        <td class="table-actions">
+          <button type="button" data-edit-player="${itemId(player)}">Edit</button>
+          <button type="button" class="danger-button" data-delete-player="${itemId(player)}">Delete</button>
+        </td>
       </tr>`;
   }).join('');
+}
+
+function renderStadiums(stadiums) {
+  const body = document.getElementById('stadiumsBody');
+  if (!body) {
+    return;
+  }
+
+  window.leagueState = window.leagueState || {};
+  window.leagueState.stadiums = stadiums;
+
+  if (stadiums.length === 0) {
+    body.innerHTML = '<tr><td colspan="5" class="empty-table">No stadiums found.</td></tr>';
+    return;
+  }
+
+  body.innerHTML = stadiums.map((stadium, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td class="club-cell">${escapeHtml(field(stadium, 'name'))}</td>
+      <td>${escapeHtml(field(stadium, 'city'))}</td>
+      <td>${Number(field(stadium, 'capacity')).toLocaleString()}</td>
+      <td class="table-actions">
+        <button type="button" data-edit-stadium="${itemId(stadium)}">Edit</button>
+        <button type="button" class="danger-button" data-delete-stadium="${itemId(stadium)}">Delete</button>
+      </td>
+    </tr>`).join('');
 }
 
 function hasElement(id) {
@@ -257,6 +417,7 @@ async function loadClubs() {
     getJson('/api/league/standings')
   ]);
   renderClubs(clubs, standings);
+  await loadStadiumOptions();
   setStatus('Clubs loaded', 'ok');
 }
 
@@ -299,7 +460,49 @@ async function loadPlayers() {
 
   renderPlayers(filteredPlayers);
   updatePlayerMetrics(filteredPlayers);
+  await loadClubOptions();
   setStatus('Players loaded', 'ok');
+}
+
+async function loadStadiums() {
+  setStatus('Loading stadiums');
+  const stadiums = await getJson('/api/stadiums');
+  window.leagueState = window.leagueState || {};
+  window.leagueState.stadiums = stadiums;
+  renderStadiums(stadiums);
+  setStatus('Stadiums loaded', 'ok');
+}
+
+async function loadClubOptions() {
+  if (!hasElement('playerClubId') && !hasElement('matchHomeClubId') && !hasElement('matchAwayClubId')) {
+    return;
+  }
+
+  const clubs = window.leagueState?.clubs ?? await getJson('/api/clubs');
+  window.leagueState = window.leagueState || {};
+  window.leagueState.clubs = clubs;
+  fillSelect('playerClubId', clubs, club => field(club, 'name'));
+  fillSelect('matchHomeClubId', clubs, club => field(club, 'name'));
+  fillSelect('matchAwayClubId', clubs, club => field(club, 'name'));
+}
+
+async function loadStadiumOptions() {
+  if (!hasElement('clubStadiumId')) {
+    return;
+  }
+
+  const stadiums = window.leagueState?.stadiums ?? await getJson('/api/stadiums');
+  window.leagueState = window.leagueState || {};
+  window.leagueState.stadiums = stadiums;
+  fillSelect('clubStadiumId', stadiums, stadium => `${field(stadium, 'name')} - ${field(stadium, 'city')}`);
+}
+
+function fillResultMatchSelect(matches = window.leagueState?.matches ?? []) {
+  fillSelect('resultMatchId', matches, match => {
+    const home = field(field(match, 'homeClub'), 'name') ?? 'Home';
+    const away = field(field(match, 'awayClub'), 'name') ?? 'Away';
+    return `${home} vs ${away}`;
+  });
 }
 
 function capitalize(value) {
@@ -325,7 +528,9 @@ async function loadDashboard() {
     hasElement('standingsBody') ? loadStandings() : Promise.resolve(),
     hasElement('clubGrid') ? loadClubs() : Promise.resolve(),
     hasElement('matchesList') ? loadMatches() : Promise.resolve(),
-    hasElement('playersBody') ? loadPlayers() : Promise.resolve()
+    hasElement('playersBody') ? loadPlayers() : Promise.resolve(),
+    hasElement('stadiumsBody') ? loadStadiums() : Promise.resolve(),
+    hasElement('matchHomeClubId') ? loadClubOptions() : Promise.resolve()
   ]);
   setStatus('API data loaded', 'ok');
 }
@@ -360,4 +565,326 @@ function showApiError(error) {
   setStatus('API unavailable. Check SQL Server LocalDB and migrations.', 'error');
 }
 
+function resetClubForm() {
+  document.getElementById('clubForm')?.reset();
+  setText('clubFormTitle', 'Add Club');
+  const id = document.getElementById('clubId');
+  if (id) {
+    id.value = '';
+  }
+}
+
+function resetPlayerForm() {
+  document.getElementById('playerForm')?.reset();
+  setText('playerFormTitle', 'Add Player');
+  const id = document.getElementById('playerId');
+  if (id) {
+    id.value = '';
+  }
+}
+
+function resetStadiumForm() {
+  document.getElementById('stadiumForm')?.reset();
+  setText('stadiumFormTitle', 'Add Stadium');
+  const id = document.getElementById('stadiumId');
+  if (id) {
+    id.value = '';
+  }
+}
+
+function resetMatchForm() {
+  document.getElementById('matchForm')?.reset();
+  setText('matchFormTitle', 'Add Match');
+  const id = document.getElementById('matchId');
+  if (id) {
+    id.value = '';
+  }
+}
+
+function editClub(id) {
+  const club = window.leagueState?.clubs?.find(item => String(itemId(item)) === String(id));
+  if (!club) {
+    return;
+  }
+
+  setText('clubFormTitle', 'Edit Club');
+  document.getElementById('clubId').value = itemId(club);
+  document.getElementById('clubName').value = field(club, 'name') ?? '';
+  document.getElementById('clubShortCode').value = field(club, 'shortCode') ?? '';
+  document.getElementById('clubCity').value = field(club, 'city') ?? '';
+  document.getElementById('clubFoundedYear').value = field(club, 'foundedYear') ?? '';
+  document.getElementById('clubStadiumId').value = field(club, 'stadiumId') ?? itemId(field(club, 'stadium')) ?? '';
+  document.getElementById('clubForm')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function editPlayer(id) {
+  const player = window.leagueState?.players?.find(item => String(itemId(item)) === String(id));
+  if (!player) {
+    return;
+  }
+
+  setText('playerFormTitle', 'Edit Player');
+  document.getElementById('playerId').value = itemId(player);
+  document.getElementById('playerFullName').value = field(player, 'fullName') ?? '';
+  document.getElementById('playerPosition').value = field(player, 'position') ?? '';
+  document.getElementById('playerShirtNumber').value = field(player, 'shirtNumber') ?? '';
+  document.getElementById('playerClubId').value = field(player, 'clubId') ?? '';
+  document.getElementById('playerForm')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function editStadium(id) {
+  const stadium = window.leagueState?.stadiums?.find(item => String(itemId(item)) === String(id));
+  if (!stadium) {
+    return;
+  }
+
+  setText('stadiumFormTitle', 'Edit Stadium');
+  document.getElementById('stadiumId').value = itemId(stadium);
+  document.getElementById('stadiumName').value = field(stadium, 'name') ?? '';
+  document.getElementById('stadiumCity').value = field(stadium, 'city') ?? '';
+  document.getElementById('stadiumCapacity').value = field(stadium, 'capacity') ?? '';
+  document.getElementById('stadiumForm')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function editMatch(id) {
+  const match = window.leagueState?.matches?.find(item => String(itemId(item)) === String(id));
+  if (!match) {
+    return;
+  }
+
+  setText('matchFormTitle', 'Edit Match');
+  document.getElementById('matchId').value = itemId(match);
+  document.getElementById('matchHomeClubId').value = field(match, 'homeClubId') ?? itemId(field(match, 'homeClub')) ?? '';
+  document.getElementById('matchAwayClubId').value = field(match, 'awayClubId') ?? itemId(field(match, 'awayClub')) ?? '';
+  document.getElementById('matchKickoffUtc').value = toLocalInputValue(field(match, 'kickoffUtc'));
+  document.getElementById('matchForm')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function fillResultForm(id) {
+  const match = window.leagueState?.matches?.find(item => String(itemId(item)) === String(id));
+  if (!match) {
+    return;
+  }
+
+  document.getElementById('resultMatchId').value = itemId(match);
+  document.getElementById('resultHomeGoals').value = field(match, 'homeGoals') ?? '';
+  document.getElementById('resultAwayGoals').value = field(match, 'awayGoals') ?? '';
+  document.getElementById('resultForm')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function deleteResource(url, statusId, reload, label) {
+  if (!confirm(`Delete this ${label}?`)) {
+    return;
+  }
+
+  setAdminStatus(statusId, `Deleting ${label}`);
+
+  try {
+    await sendJson(url, 'DELETE');
+    setAdminStatus(statusId, `${capitalize(label)} deleted`, 'ok');
+    await reload();
+  } catch (error) {
+    console.error(error);
+    setAdminStatus(statusId, error.message || `Could not delete ${label}`, 'error');
+  }
+}
+
+document.addEventListener('click', event => {
+  const target = event.target.closest('button');
+  if (!target) {
+    return;
+  }
+
+  if (target.dataset.editClub) {
+    editClub(target.dataset.editClub);
+  } else if (target.dataset.deleteClub) {
+    deleteResource(`/api/clubs/${target.dataset.deleteClub}`, 'clubAdminStatus', loadClubs, 'club');
+  } else if (target.dataset.editPlayer) {
+    editPlayer(target.dataset.editPlayer);
+  } else if (target.dataset.deletePlayer) {
+    deleteResource(`/api/players/${target.dataset.deletePlayer}`, 'playerAdminStatus', loadPlayers, 'player');
+  } else if (target.dataset.editStadium) {
+    editStadium(target.dataset.editStadium);
+  } else if (target.dataset.deleteStadium) {
+    deleteResource(`/api/stadiums/${target.dataset.deleteStadium}`, 'stadiumAdminStatus', loadStadiums, 'stadium');
+  } else if (target.dataset.editMatch) {
+    editMatch(target.dataset.editMatch);
+  } else if (target.dataset.resultMatch) {
+    fillResultForm(target.dataset.resultMatch);
+  } else if (target.dataset.deleteMatch) {
+    deleteResource(`/api/matches/${target.dataset.deleteMatch}`, 'matchAdminStatus', loadMatches, 'match');
+  }
+});
+
+document.getElementById('clubResetButton')?.addEventListener('click', resetClubForm);
+document.getElementById('playerResetButton')?.addEventListener('click', resetPlayerForm);
+document.getElementById('stadiumResetButton')?.addEventListener('click', resetStadiumForm);
+document.getElementById('matchResetButton')?.addEventListener('click', resetMatchForm);
+
+document.getElementById('clubForm')?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const id = document.getElementById('clubId').value;
+  const payload = getPayload(event.currentTarget, ['foundedYear', 'stadiumId']);
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? `/api/clubs/${id}` : '/api/clubs';
+  setAdminStatus('clubAdminStatus', id ? 'Updating club' : 'Creating club');
+
+  try {
+    await sendJson(url, method, payload);
+    setAdminStatus('clubAdminStatus', id ? 'Club updated' : 'Club created', 'ok');
+    resetClubForm();
+    await loadClubs();
+  } catch (error) {
+    console.error(error);
+    setAdminStatus('clubAdminStatus', error.message || 'Could not save club', 'error');
+  }
+});
+
+document.getElementById('playerForm')?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const id = document.getElementById('playerId').value;
+  const payload = getPayload(event.currentTarget, ['shirtNumber', 'clubId']);
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? `/api/players/${id}` : '/api/players';
+  setAdminStatus('playerAdminStatus', id ? 'Updating player' : 'Creating player');
+
+  try {
+    await sendJson(url, method, payload);
+    setAdminStatus('playerAdminStatus', id ? 'Player updated' : 'Player created', 'ok');
+    resetPlayerForm();
+    await loadPlayers();
+  } catch (error) {
+    console.error(error);
+    setAdminStatus('playerAdminStatus', error.message || 'Could not save player', 'error');
+  }
+});
+
+document.getElementById('stadiumForm')?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const id = document.getElementById('stadiumId').value;
+  const payload = getPayload(event.currentTarget, ['capacity']);
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? `/api/stadiums/${id}` : '/api/stadiums';
+  setAdminStatus('stadiumAdminStatus', id ? 'Updating stadium' : 'Creating stadium');
+
+  try {
+    await sendJson(url, method, payload);
+    setAdminStatus('stadiumAdminStatus', id ? 'Stadium updated' : 'Stadium created', 'ok');
+    resetStadiumForm();
+    await loadStadiums();
+  } catch (error) {
+    console.error(error);
+    setAdminStatus('stadiumAdminStatus', error.message || 'Could not save stadium', 'error');
+  }
+});
+
+document.getElementById('matchForm')?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const id = document.getElementById('matchId').value;
+  const payload = getPayload(event.currentTarget, ['homeClubId', 'awayClubId']);
+  payload.kickoffUtc = toUtcIsoFromLocalInput(payload.kickoffUtc);
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? `/api/matches/${id}` : '/api/matches';
+  setAdminStatus('matchAdminStatus', id ? 'Updating match' : 'Creating match');
+
+  try {
+    await sendJson(url, method, payload);
+    setAdminStatus('matchAdminStatus', id ? 'Match updated' : 'Match created', 'ok');
+    resetMatchForm();
+    await loadMatches();
+  } catch (error) {
+    console.error(error);
+    setAdminStatus('matchAdminStatus', error.message || 'Could not save match', 'error');
+  }
+});
+
+document.getElementById('resultForm')?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const payload = getPayload(event.currentTarget, ['matchId', 'homeGoals', 'awayGoals']);
+  const matchId = payload.matchId;
+  delete payload.matchId;
+  setAdminStatus('resultAdminStatus', 'Saving result');
+
+  try {
+    await sendJson(`/api/matches/${matchId}/result`, 'PATCH', payload);
+    setAdminStatus('resultAdminStatus', 'Result saved', 'ok');
+    event.currentTarget.reset();
+    await loadMatches();
+    if (hasElement('standingsBody')) {
+      await loadStandings();
+    }
+  } catch (error) {
+    console.error(error);
+    setAdminStatus('resultAdminStatus', error.message || 'Could not save result', 'error');
+  }
+});
+
+function getFormPayload(form) {
+  return Object.fromEntries(new FormData(form).entries());
+}
+
+document.getElementById('loginForm')?.addEventListener('submit', async event => {
+  event.preventDefault();
+  setAuthStatus('Signing in');
+
+  try {
+    await postJson('/api/account/login', getFormPayload(event.currentTarget));
+    setAuthStatus('Logged in', 'ok');
+    window.location.href = '/Account';
+  } catch (error) {
+    console.error(error);
+    setAuthStatus(error.message || 'Login failed', 'error');
+  }
+});
+
+document.getElementById('registerForm')?.addEventListener('submit', async event => {
+  event.preventDefault();
+  setAuthStatus('Creating account');
+
+  try {
+    await postJson('/api/account/register', getFormPayload(event.currentTarget));
+    setAuthStatus('Account created. You can log in now.', 'ok');
+    window.setTimeout(() => {
+      window.location.href = '/Login';
+    }, 900);
+  } catch (error) {
+    console.error(error);
+    setAuthStatus(error.message || 'Registration failed', 'error');
+  }
+});
+
+async function loadProfile() {
+  if (!hasElement('profileEmail')) {
+    return;
+  }
+
+  try {
+    const profile = await getJson('/api/account/profile');
+    setText('profileEmail', profile.email);
+    setText('profileFullName', profile.fullName);
+    setText('profileFavoriteClub', profile.favoriteClub || 'Not selected');
+    setAuthStatus('Profile loaded', 'ok');
+  } catch (error) {
+    console.error(error);
+    setText('profileEmail', 'Not signed in');
+    setText('profileFullName', 'Not signed in');
+    setText('profileFavoriteClub', 'Not signed in');
+    setAuthStatus('Please log in first', 'error');
+  }
+}
+
+document.getElementById('logoutButton')?.addEventListener('click', async () => {
+  setAuthStatus('Signing out');
+
+  try {
+    await postJson('/api/account/logout', {});
+    setAuthStatus('Logged out', 'ok');
+    window.location.href = '/Login';
+  } catch (error) {
+    console.error(error);
+    setAuthStatus(error.message || 'Logout failed', 'error');
+  }
+});
+
 loadDashboard().catch(showApiError);
+loadProfile().catch(showApiError);

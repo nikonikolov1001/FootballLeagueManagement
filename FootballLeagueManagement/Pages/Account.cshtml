@@ -1,0 +1,39 @@
+@page
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<section class="page-heading">
+    <p class="eyebrow">Signed In User</p>
+    <h1>Profile</h1>
+    <p>View the current account and sign out.</p>
+</section>
+
+<section class="auth-shell">
+    <div class="panel auth-form">
+        <div class="section-title">
+            <div>
+                <p class="eyebrow">Account</p>
+                <h2>Current profile</h2>
+            </div>
+        </div>
+
+        <dl class="profile-list">
+            <div>
+                <dt>Email</dt>
+                <dd id="profileEmail">Loading</dd>
+            </div>
+            <div>
+                <dt>Full name</dt>
+                <dd id="profileFullName">Loading</dd>
+            </div>
+            <div>
+                <dt>Favorite club</dt>
+                <dd id="profileFavoriteClub">Loading</dd>
+            </div>
+        </dl>
+
+        <button id="logoutButton" type="button" class="primary-button danger-button">Logout</button>
+        <div id="authStatus" class="api-status">Loading profile</div>
+    </div>
+</section>
