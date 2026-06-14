@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FootballLeagueManagement.Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FootballLeagueManagement.Infrastructure", "FootballLeagueManagement.Infrastructure\FootballLeagueManagement.Infrastructure.csproj", "{C8D759B8-1908-431A-B8DA-5576DB3EEC64}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FootballLeagueManagement.Tests", "FootballLeagueManagement.Tests\FootballLeagueManagement.Tests.csproj", "{9BCFCA1A-607C-44E0-8F02-839073AD4303}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{C8D759B8-1908-431A-B8DA-5576DB3EEC64}.Release|x64.Build.0 = Release|Any CPU
 		{C8D759B8-1908-431A-B8DA-5576DB3EEC64}.Release|x86.ActiveCfg = Release|Any CPU
 		{C8D759B8-1908-431A-B8DA-5576DB3EEC64}.Release|x86.Build.0 = Release|Any CPU
+		{9BCFCA1A-607C-44E0-8F02-839073AD4303}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BCFCA1A-607C-44E0-8F02-839073AD4303}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BCFCA1A-607C-44E0-8F02-839073AD4303}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9BCFCA1A-607C-44E0-8F02-839073AD4303}.Debug|x64.Build.0 = Debug|Any CPU
+		{9BCFCA1A-607C-44E0-8F02-839073AD4303}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9BCFCA1A-607C-44E0-8F02-839073AD4303}.Debug|x86.Build.0 = Debug|Any CPU
+		{9BCFCA1A-607C-44E0-8F02-839073AD4303}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BCFCA1A-607C-44E0-8F02-839073AD4303}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BCFCA1A-607C-44E0-8F02-839073AD4303}.Release|x64.ActiveCfg = Release|Any CPU
+		{9BCFCA1A-607C-44E0-8F02-839073AD4303}.Release|x64.Build.0 = Release|Any CPU
+		{9BCFCA1A-607C-44E0-8F02-839073AD4303}.Release|x86.ActiveCfg = Release|Any CPU
+		{9BCFCA1A-607C-44E0-8F02-839073AD4303}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

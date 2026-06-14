@@ -4,6 +4,7 @@ using FootballLeagueManagement.Core.Services;
 using FootballLeagueManagement.Infrastructure.Data;
 using FootballLeagueManagement.Infrastructure.Identity;
 using FootballLeagueManagement.Infrastructure.Services;
+using FootballLeagueManagement.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +30,9 @@ builder.Services.AddDataProtection()
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
         options.Password.RequireDigit = true;
-        options.Password.RequireUppercase = true;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireLowercase = false;
+        options.Password.RequireNonAlphanumeric = false;
         options.Password.RequiredLength = 8;
         options.User.RequireUniqueEmail = true;
     })
@@ -38,12 +41,15 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.LoginPath = "/Identity/Login";
-    options.AccessDeniedPath = "/Identity/AccessDenied";
+    options.LoginPath = "/Login";
+    options.AccessDeniedPath = "/Login";
 });
 
 builder.Services.AddScoped<ILeagueQueryService, LeagueQueryService>();
 builder.Services.AddScoped<IMatchService, MatchService>();
+builder.Services.AddScoped<IClubAdminService, ClubAdminService>();
+builder.Services.AddScoped<IPlayerAdminService, PlayerAdminService>();
+builder.Services.AddScoped<IStadiumAdminService, StadiumAdminService>();
 builder.Services.AddRazorPages();
 builder.Services.AddControllersWithViews();
 

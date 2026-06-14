@@ -10,7 +10,10 @@ namespace FootballLeagueManagement.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PlayersController(ApplicationDbContext dbContext, IConfiguration configuration) : ControllerBase
+public class PlayersController(
+    ApplicationDbContext dbContext,
+    IConfiguration configuration,
+    IPlayerAdminService playerAdminService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> All([FromQuery] int? clubId, CancellationToken cancellationToken)
@@ -59,59 +62,35 @@ public class PlayersController(ApplicationDbContext dbContext, IConfiguration co
     [HttpPost]
     public async Task<IActionResult> Create(PlayerInputModel input, CancellationToken cancellationToken)
     {
-        if (!await dbContext.Clubs.AnyAsync(club => club.Id == input.ClubId, cancellationToken))
-        {
-            return BadRequest("The selected club does not exist.");
-        }
-
-        var player = new Player
-        {
-            FullName = input.FullName,
-            Position = input.Position,
-            ShirtNumber = input.ShirtNumber,
-            ClubId = input.ClubId
-        };
-
-        dbContext.Players.Add(player);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return CreatedAtAction(nameof(ById), new { id = player.Id }, player);
+        var result = await playerAdminService.CreateAsync(input, cancellationToken);
+        return ToActionResult(result, player => CreatedAtAction(nameof(ById), new { id = player.Id }, player));
     }
 
     [Authorize(Roles = "Administrator")]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, PlayerInputModel input, CancellationToken cancellationToken)
     {
-        var player = await dbContext.Players.FirstOrDefaultAsync(player => player.Id == id, cancellationToken);
-        if (player is null)
-        {
-            return NotFound();
-        }
-
-        if (!await dbContext.Clubs.AnyAsync(club => club.Id == input.ClubId, cancellationToken))
-        {
-            return BadRequest("The selected club does not exist.");
-        }
-
-        player.FullName = input.FullName;
-        player.Position = input.Position;
-        player.ShirtNumber = input.ShirtNumber;
-        player.ClubId = input.ClubId;
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return NoContent();
+        var result = await playerAdminService.UpdateAsync(id, input, cancellationToken);
+        return ToActionResult(result, _ => NoContent());
     }
 
     [Authorize(Roles = "Administrator")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        var player = await dbContext.Players.FirstOrDefaultAsync(player => player.Id == id, cancellationToken);
-        if (player is null)
-        {
-            return NotFound();
-        }
+        var result = await playerAdminService.DeleteAsync(id, cancellationToken);
+        return ToActionResult(result, _ => NoContent());
+    }
 
-        dbContext.Players.Remove(player);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return NoContent();
+    private IActionResult ToActionResult(AdminOperationResult<Player> result, Func<Player, IActionResult> onSuccess)
+    {
+        return result.Status switch
+        {
+            AdminOperationStatus.Success => onSuccess(result.Value!),
+            AdminOperationStatus.NotFound => NotFound(result.Message),
+            AdminOperationStatus.BadRequest => BadRequest(result.Message),
+            AdminOperationStatus.Conflict => Conflict(result.Message),
+            _ => BadRequest()
+        };
     }
 }

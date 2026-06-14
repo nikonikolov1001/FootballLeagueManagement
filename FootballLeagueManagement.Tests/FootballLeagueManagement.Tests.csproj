@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\FootballLeagueManagement.Core\FootballLeagueManagement.Core.csproj" />
     <ProjectReference Include="..\FootballLeagueManagement.Infrastructure\FootballLeagueManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\FootballLeagueManagement\FootballLeagueManagement.csproj" />
   </ItemGroup>
 
   <ItemGroup>

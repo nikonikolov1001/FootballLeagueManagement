@@ -10,7 +10,10 @@ namespace FootballLeagueManagement.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class StadiumsController(ApplicationDbContext dbContext, IConfiguration configuration) : ControllerBase
+public class StadiumsController(
+    ApplicationDbContext dbContext,
+    IConfiguration configuration,
+    IStadiumAdminService stadiumAdminService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> All(CancellationToken cancellationToken)
@@ -41,48 +44,35 @@ public class StadiumsController(ApplicationDbContext dbContext, IConfiguration c
     [HttpPost]
     public async Task<IActionResult> Create(StadiumInputModel input, CancellationToken cancellationToken)
     {
-        var stadium = new Stadium { Name = input.Name, City = input.City, Capacity = input.Capacity };
-        dbContext.Stadiums.Add(stadium);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return CreatedAtAction(nameof(ById), new { id = stadium.Id }, stadium);
+        var result = await stadiumAdminService.CreateAsync(input, cancellationToken);
+        return ToActionResult(result, stadium => CreatedAtAction(nameof(ById), new { id = stadium.Id }, stadium));
     }
 
     [Authorize(Roles = "Administrator")]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, StadiumInputModel input, CancellationToken cancellationToken)
     {
-        var stadium = await dbContext.Stadiums.FirstOrDefaultAsync(stadium => stadium.Id == id, cancellationToken);
-        if (stadium is null)
-        {
-            return NotFound();
-        }
-
-        stadium.Name = input.Name;
-        stadium.City = input.City;
-        stadium.Capacity = input.Capacity;
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return NoContent();
+        var result = await stadiumAdminService.UpdateAsync(id, input, cancellationToken);
+        return ToActionResult(result, _ => NoContent());
     }
 
     [Authorize(Roles = "Administrator")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        var stadium = await dbContext.Stadiums.FirstOrDefaultAsync(stadium => stadium.Id == id, cancellationToken);
-        if (stadium is null)
-        {
-            return NotFound();
-        }
+        var result = await stadiumAdminService.DeleteAsync(id, cancellationToken);
+        return ToActionResult(result, _ => NoContent());
+    }
 
-        try
+    private IActionResult ToActionResult(AdminOperationResult<Stadium> result, Func<Stadium, IActionResult> onSuccess)
+    {
+        return result.Status switch
         {
-            dbContext.Stadiums.Remove(stadium);
-            await dbContext.SaveChangesAsync(cancellationToken);
-            return NoContent();
-        }
-        catch (DbUpdateException)
-        {
-            return Conflict("This stadium cannot be deleted because it is assigned to a club.");
-        }
+            AdminOperationStatus.Success => onSuccess(result.Value!),
+            AdminOperationStatus.NotFound => NotFound(result.Message),
+            AdminOperationStatus.BadRequest => BadRequest(result.Message),
+            AdminOperationStatus.Conflict => Conflict(result.Message),
+            _ => BadRequest()
+        };
     }
 }

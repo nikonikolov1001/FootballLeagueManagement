@@ -22,7 +22,7 @@ In Development mode, the app applies EF Core migrations automatically on startup
 - `FootballLeagueManagement` - ASP.NET Core 8 Web/API project.
 - `FootballLeagueManagement.Core` - entity models, DTOs, and service interfaces.
 - `FootballLeagueManagement.Infrastructure` - EF Core, SQL Server, Identity, migrations, seeded data, services.
-- `FootballLeagueManagement.Tests` - NUnit test project prepared separately. Add it back to the solution after NuGet restore is available.
+- `FootballLeagueManagement.Tests` - NUnit test project for services and controller tests with mocking.
 
 ## Covered Requirements
 
@@ -35,6 +35,7 @@ In Development mode, the app applies EF Core migrations automatically on startup
 - CRUD endpoints for clubs, players, stadiums, and matches.
 - Input validation with data annotations and API model validation.
 - Business logic in services: standings and result recording.
+- Admin CRUD business logic in services: `ClubAdminService`, `PlayerAdminService`, `StadiumAdminService`, and `MatchService`.
 - Dependency injection.
 - ASP.NET Identity with custom user properties: `FullName`, `FavoriteClub`.
 - Seeded Administrator role and admin user.
@@ -69,13 +70,18 @@ Role: Administrator
 
 ## Tests
 
-`FootballLeagueManagement.Tests` contains NUnit tests for `MatchService` and `LeagueQueryService`.
+`FootballLeagueManagement.Tests` contains NUnit tests for `MatchService`, `LeagueQueryService`, and `ClubsController`.
 
-The current restricted environment could not download NUnit/Moq/EF InMemory packages from NuGet, so the test project is present on disk but not included in the main `.sln` build. After NuGet works in Visual Studio, add it back:
+The controller tests use Moq to mock admin services. To run the tests after NuGet restore is available:
 
 ```powershell
-dotnet sln FootballLeagueManagement.sln add FootballLeagueManagement.Tests\FootballLeagueManagement.Tests.csproj
 dotnet test
+```
+
+To collect coverage:
+
+```powershell
+dotnet test --collect:"XPlat Code Coverage"
 ```
 
 ## Source Control Note

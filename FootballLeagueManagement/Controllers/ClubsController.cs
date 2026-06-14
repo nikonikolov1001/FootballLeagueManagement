@@ -10,7 +10,10 @@ namespace FootballLeagueManagement.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ClubsController(ApplicationDbContext dbContext, IConfiguration configuration) : ControllerBase
+public class ClubsController(
+    ApplicationDbContext dbContext,
+    IConfiguration configuration,
+    IClubAdminService clubAdminService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> All([FromQuery] string? search, CancellationToken cancellationToken)
@@ -29,29 +32,7 @@ public class ClubsController(ApplicationDbContext dbContext, IConfiguration conf
 
         try
         {
-            var clubs = await query
-                .OrderBy(club => club.Name)
-                .Select(club => new
-                {
-                    club.Id,
-                    club.Name,
-                    club.ShortCode,
-                    club.City,
-                    club.FoundedYear,
-                    club.StadiumId,
-                    Stadium = club.Stadium == null
-                        ? null
-                        : new
-                        {
-                            club.Stadium.Id,
-                            club.Stadium.Name,
-                            club.Stadium.City,
-                            club.Stadium.Capacity
-                        }
-                })
-                .ToListAsync(cancellationToken);
-
-            return Ok(clubs);
+            return Ok(await query.OrderBy(club => club.Name).ToListAsync(cancellationToken));
         }
         catch
         {
@@ -79,104 +60,42 @@ public class ClubsController(ApplicationDbContext dbContext, IConfiguration conf
             return demoClub is null ? NotFound() : Ok(demoClub);
         }
 
-        return club is null
-            ? NotFound()
-            : Ok(new
-            {
-                club.Id,
-                club.Name,
-                club.ShortCode,
-                club.City,
-                club.FoundedYear,
-                club.StadiumId,
-                Stadium = club.Stadium == null
-                    ? null
-                    : new
-                    {
-                        club.Stadium.Id,
-                        club.Stadium.Name,
-                        club.Stadium.City,
-                        club.Stadium.Capacity
-                    }
-            });
+        return club is null ? NotFound() : Ok(club);
     }
 
     [Authorize(Roles = "Administrator")]
     [HttpPost]
     public async Task<IActionResult> Create(ClubInputModel input, CancellationToken cancellationToken)
     {
-        if (!await dbContext.Stadiums.AnyAsync(stadium => stadium.Id == input.StadiumId, cancellationToken))
-        {
-            return BadRequest("The selected stadium does not exist.");
-        }
-
-        if (await dbContext.Clubs.AnyAsync(club => club.Name == input.Name || club.ShortCode == input.ShortCode, cancellationToken))
-        {
-            return Conflict("A club with the same name or short code already exists.");
-        }
-
-        var club = new Club
-        {
-            Name = input.Name,
-            ShortCode = input.ShortCode,
-            City = input.City,
-            FoundedYear = input.FoundedYear,
-            StadiumId = input.StadiumId
-        };
-
-        dbContext.Clubs.Add(club);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return CreatedAtAction(nameof(ById), new { id = club.Id }, club);
+        var result = await clubAdminService.CreateAsync(input, cancellationToken);
+        return ToActionResult(result, club => CreatedAtAction(nameof(ById), new { id = club.Id }, club));
     }
 
     [Authorize(Roles = "Administrator")]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, ClubInputModel input, CancellationToken cancellationToken)
     {
-        var club = await dbContext.Clubs.FirstOrDefaultAsync(club => club.Id == id, cancellationToken);
-        if (club is null)
-        {
-            return NotFound();
-        }
-
-        if (!await dbContext.Stadiums.AnyAsync(stadium => stadium.Id == input.StadiumId, cancellationToken))
-        {
-            return BadRequest("The selected stadium does not exist.");
-        }
-
-        if (await dbContext.Clubs.AnyAsync(club => club.Id != id && (club.Name == input.Name || club.ShortCode == input.ShortCode), cancellationToken))
-        {
-            return Conflict("A club with the same name or short code already exists.");
-        }
-
-        club.Name = input.Name;
-        club.ShortCode = input.ShortCode;
-        club.City = input.City;
-        club.FoundedYear = input.FoundedYear;
-        club.StadiumId = input.StadiumId;
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return NoContent();
+        var result = await clubAdminService.UpdateAsync(id, input, cancellationToken);
+        return ToActionResult(result, _ => NoContent());
     }
 
     [Authorize(Roles = "Administrator")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        var club = await dbContext.Clubs.FirstOrDefaultAsync(club => club.Id == id, cancellationToken);
-        if (club is null)
-        {
-            return NotFound();
-        }
+        var result = await clubAdminService.DeleteAsync(id, cancellationToken);
+        return ToActionResult(result, _ => NoContent());
+    }
 
-        try
+    private IActionResult ToActionResult(AdminOperationResult<Club> result, Func<Club, IActionResult> onSuccess)
+    {
+        return result.Status switch
         {
-            dbContext.Clubs.Remove(club);
-            await dbContext.SaveChangesAsync(cancellationToken);
-            return NoContent();
-        }
-        catch (DbUpdateException)
-        {
-            return Conflict("This club cannot be deleted because it has related players or matches.");
-        }
+            AdminOperationStatus.Success => onSuccess(result.Value!),
+            AdminOperationStatus.NotFound => NotFound(result.Message),
+            AdminOperationStatus.BadRequest => BadRequest(result.Message),
+            AdminOperationStatus.Conflict => Conflict(result.Message),
+            _ => BadRequest()
+        };
     }
 }

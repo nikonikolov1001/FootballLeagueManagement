@@ -74,45 +74,34 @@ public class MatchesController(ApplicationDbContext dbContext, IMatchService mat
     [HttpPost]
     public async Task<IActionResult> Create(MatchInputModel input, CancellationToken cancellationToken)
     {
-        var validation = await ValidateClubsAsync(input.HomeClubId, input.AwayClubId, cancellationToken);
-        if (validation is not null)
+        try
         {
-            return validation;
+            var match = await matchService.CreateAsync(input.HomeClubId, input.AwayClubId, input.KickoffUtc, cancellationToken);
+            return CreatedAtAction(nameof(ById), new { id = match.Id }, match);
         }
-
-        var match = new Match
+        catch (ArgumentException exception)
         {
-            HomeClubId = input.HomeClubId,
-            AwayClubId = input.AwayClubId,
-            KickoffUtc = input.KickoffUtc
-        };
-
-        dbContext.Matches.Add(match);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return CreatedAtAction(nameof(ById), new { id = match.Id }, match);
+            return BadRequest(exception.Message);
+        }
     }
 
     [Authorize(Roles = "Administrator")]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, MatchInputModel input, CancellationToken cancellationToken)
     {
-        var validation = await ValidateClubsAsync(input.HomeClubId, input.AwayClubId, cancellationToken);
-        if (validation is not null)
+        try
         {
-            return validation;
+            await matchService.UpdateAsync(id, input.HomeClubId, input.AwayClubId, input.KickoffUtc, cancellationToken);
+            return NoContent();
         }
-
-        var match = await dbContext.Matches.FirstOrDefaultAsync(match => match.Id == id, cancellationToken);
-        if (match is null)
+        catch (InvalidOperationException exception)
         {
-            return NotFound();
+            return NotFound(exception.Message);
         }
-
-        match.HomeClubId = input.HomeClubId;
-        match.AwayClubId = input.AwayClubId;
-        match.KickoffUtc = input.KickoffUtc;
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return NoContent();
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
     }
 
     [Authorize(Roles = "Administrator")]
@@ -133,27 +122,14 @@ public class MatchesController(ApplicationDbContext dbContext, IMatchService mat
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        var match = await dbContext.Matches.FirstOrDefaultAsync(match => match.Id == id, cancellationToken);
-        if (match is null)
+        try
         {
-            return NotFound();
+            await matchService.DeleteAsync(id, cancellationToken);
+            return NoContent();
         }
-
-        dbContext.Matches.Remove(match);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return NoContent();
-    }
-
-    private async Task<IActionResult?> ValidateClubsAsync(int homeClubId, int awayClubId, CancellationToken cancellationToken)
-    {
-        if (homeClubId == awayClubId)
+        catch (InvalidOperationException exception)
         {
-            return BadRequest("Home and away clubs must be different.");
+            return NotFound(exception.Message);
         }
-
-        var foundClubs = await dbContext.Clubs
-            .CountAsync(club => club.Id == homeClubId || club.Id == awayClubId, cancellationToken);
-
-        return foundClubs == 2 ? null : BadRequest("Both clubs must exist before creating a match.");
     }
 }
